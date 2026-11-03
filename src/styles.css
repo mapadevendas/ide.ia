@@ -58,7 +58,9 @@ button {
 }
 
 img {
+  display: block;
   max-width: 100%;
+  height: auto;
 }
 
 a {
@@ -80,8 +82,24 @@ header {
   width: 100%;
 }
 
-.logo,
-header img {
+/* Logo: impede que a imagem domine o cabeçalho */
+header img,
+.logo {
+  display: block;
+  width: auto;
+  max-width: min(100%, 360px);
+  max-height: 110px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Evita imagens gigantes no rodapé */
+footer img {
+  display: block;
+  width: auto;
+  max-width: min(100%, 360px);
+  max-height: 100px;
+  height: auto;
   object-fit: contain;
 }
 
@@ -187,6 +205,17 @@ small,
   .page,
   .container {
     width: min(100% - 24px, 1100px);
+  }
+
+  header img,
+  .logo {
+    max-width: min(100%, 280px);
+    max-height: 80px;
+  }
+
+  footer img {
+    max-width: min(100%, 280px);
+    max-height: 80px;
   }
 
   form,
