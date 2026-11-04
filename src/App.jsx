@@ -230,7 +230,7 @@ export default function App() {
           <span className="section-kicker">INSCRIÇÃO RECEBIDA</span>
           <h2>Você deu o primeiro passo.</h2>
           <p>Sua inscrição foi registrada. Entre no grupo oficial de WhatsApp para acompanhar os avisos e receber as próximas orientações da Sala Secreta I.D.E.ia.</p>
-          <a className="primary-btn whatsapp-group-link" href="https://chat.whatsapp.com/ECEFpDiYL3GF5B84AxuIaS?s=cl&p=i&mlu=4&ilr=4&iam=2" target="_blank" rel="noreferrer"><MessageCircle size={18} /> Entrar no grupo de WhatsApp <ArrowRight size={17} /></a>
+          <a className="primary-btn whatsapp-group-link" href="https://chat.whatsapp.com/CiRek9ImDsO9d2ntXBTQJj?s=cl&p=i&mlu=4&ilr=4&iam=2" target="_blank" rel="noreferrer"><MessageCircle size={18} /> Entrar no grupo de WhatsApp <ArrowRight size={17} /></a>
           <p className="privacy-note">A entrada no grupo é feita por você ao tocar no botão. Guarde esta página até concluir.</p>
         </div> : <form onSubmit={submit}>
           <div className="form-grid">{questions.map(question => <Field key={question.name} q={question} value={form[question.name]} onChange={update} />)}</div>
