@@ -141,6 +141,7 @@ export default function App() {
       showNotice('Não foi possível alterar a senha. Solicite um novo link de redefinição e tente novamente.');
     } else {
       setResetMode(false);
+      setSession(null);
       setNewPassword('');
       setLoginPassword('');
       setNotice('Senha redefinida com sucesso. Agora entre no CRM com a nova senha.', 'success');
@@ -231,7 +232,7 @@ export default function App() {
 
       <section className="bottom-note"><img className="bottom-brand-logo" src="/cardume-logo.jpg" alt="Cardume" /><p>Identifica <b>·</b> Direciona <b>·</b> Expande</p><small>Sala Secreta I.D.E.ia · Organizar para multiplicar.</small></section>
     </main> : <main className="admin-page">
-      {!session ? <section className="login-card">
+      {(!session || resetMode) ? <section className="login-card">
         <div className="lock-art"><LockKeyhole size={26} /></div><span className="section-kicker">ACESSO RESTRITO</span><h1>{resetMode ? 'Criar nova senha' : 'Painel da tutora'}</h1><p>{resetMode ? 'Defina uma nova senha para acessar o CRM.' : 'Entre para consultar inscrições e acompanhar os convites.'}</p>
         {notice && <div className={`notice ${noticeType}`}>{notice}</div>}
         {resetMode ? <form onSubmit={saveNewPassword}>
