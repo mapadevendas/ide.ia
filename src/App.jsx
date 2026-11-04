@@ -122,7 +122,7 @@ export default function App() {
     setResetBusy(false);
     if (error) {
       console.error('Falha ao solicitar redefinição de senha:', error);
-      showNotice('Não foi possível enviar o e-mail de redefinição. Confira as configurações de Auth e Redirect URLs no Supabase.');
+      showNotice(`Falha no envio: ${error.message || 'erro não identificado'} (código: ${error.status || 'sem status'}). Confira Authentication > Emails e os limites de envio do Supabase.`);
     } else {
       showNotice('Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha. Confira sua caixa de entrada e o spam.', 'success');
     }
