@@ -60,11 +60,17 @@ export default function App() {
   const [adminLoading, setAdminLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('suporteapp9@gmail.com');
   const [loginPassword, setLoginPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetMode, setResetMode] = useState(new URLSearchParams(location.search).get('reset-password') === 'true');
+  const [resetBusy, setResetBusy] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      setSession(nextSession);
+      if (event === 'PASSWORD_RECOVERY') { setResetMode(true); setPage('admin'); }
+    });
     return () => subscription.unsubscribe();
   }, []);
 
@@ -102,6 +108,44 @@ export default function App() {
     const { error } = await supabase.auth.signInWithPassword({ email, password: loginPassword });
     if (error) showNotice('Não foi possível entrar. Confira a senha e confirme que o usuário existe no Supabase Auth.');
     else { setNotice(''); setPage('admin'); location.hash = '#admin'; }
+  }
+
+  async function requestPasswordReset() {
+    setNotice('');
+    if (!supabase) { showNotice('A conexão com o Supabase não está configurada.'); return; }
+    const email = loginEmail.trim().toLowerCase();
+    if (email !== adminEmail) { showNotice('Informe o e-mail administrativo autorizado para redefinir a senha.'); return; }
+    setResetBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${location.origin}/?reset-password=true#admin`
+    });
+    setResetBusy(false);
+    if (error) {
+      console.error('Falha ao solicitar redefinição de senha:', error);
+      showNotice('Não foi possível enviar o e-mail de redefinição. Confira as configurações de Auth e Redirect URLs no Supabase.');
+    } else {
+      showNotice('Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha. Confira sua caixa de entrada e o spam.', 'success');
+    }
+  }
+
+  async function saveNewPassword(event) {
+    event.preventDefault();
+    setNotice('');
+    if (!supabase) { showNotice('A conexão com o Supabase não está configurada.'); return; }
+    if (newPassword.length < 8) { showNotice('A nova senha deve ter pelo menos 8 caracteres.'); return; }
+    setResetBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setResetBusy(false);
+    if (error) {
+      console.error('Falha ao atualizar senha:', error);
+      showNotice('Não foi possível alterar a senha. Solicite um novo link de redefinição e tente novamente.');
+    } else {
+      setResetMode(false);
+      setNewPassword('');
+      setLoginPassword('');
+      setNotice('Senha redefinida com sucesso. Agora entre no CRM com a nova senha.', 'success');
+      history.replaceState(null, '', '/#admin');
+    }
   }
 
   async function loadAdmin() {
@@ -188,13 +232,17 @@ export default function App() {
       <section className="bottom-note"><img className="bottom-brand-logo" src="/cardume-logo.jpg" alt="Cardume" /><p>Identifica <b>·</b> Direciona <b>·</b> Expande</p><small>Sala Secreta I.D.E.ia · Organizar para multiplicar.</small></section>
     </main> : <main className="admin-page">
       {!session ? <section className="login-card">
-        <div className="lock-art"><LockKeyhole size={26} /></div><span className="section-kicker">ACESSO RESTRITO</span><h1>Painel da tutora</h1><p>Entre para consultar inscrições e acompanhar os convites.</p>
+        <div className="lock-art"><LockKeyhole size={26} /></div><span className="section-kicker">ACESSO RESTRITO</span><h1>{resetMode ? 'Criar nova senha' : 'Painel da tutora'}</h1><p>{resetMode ? 'Defina uma nova senha para acessar o CRM.' : 'Entre para consultar inscrições e acompanhar os convites.'}</p>
         {notice && <div className={`notice ${noticeType}`}>{notice}</div>}
-        <form onSubmit={login}>
+        {resetMode ? <form onSubmit={saveNewPassword}>
+          <label className="field"><span>Nova senha (mínimo 8 caracteres)</span><input type="password" minLength={8} required autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} /></label>
+          <button className="primary-btn" type="submit" disabled={resetBusy}>{resetBusy ? 'Salvando...' : 'Salvar nova senha'} <ArrowRight size={17} /></button>
+        </form> : <form onSubmit={login}>
           <label className="field"><span>E-mail administrativo</span><input type="email" required value={loginEmail} onChange={event => setLoginEmail(event.target.value)} /></label>
-          <label className="field"><span>Senha</span><input type="password" required value={loginPassword} onChange={event => setLoginPassword(event.target.value)} /></label>
+          <label className="field"><span>Senha</span><input type="password" required autoComplete="current-password" value={loginPassword} onChange={event => setLoginPassword(event.target.value)} /></label>
           <button className="primary-btn" type="submit">Entrar no CRM <ArrowRight size={17} /></button>
-        </form>
+          <button className="ghost-btn reset-password-btn" type="button" onClick={requestPasswordReset} disabled={resetBusy}>{resetBusy ? 'Enviando...' : 'Esqueci minha senha · Redefinir senha'}</button>
+        </form>}
       </section> : <section className="crm">
         <div className="crm-head"><div><span className="section-kicker">SALA SECRETA I.D.E.ia</span><h1>CRM de inscrições</h1><p>Conferência manual antes de enviar as orientações de acesso.</p></div><button className="ghost-btn" onClick={logout}><LogOut size={16} /> Sair</button></div>
         <div className="stats">
