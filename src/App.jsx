@@ -51,6 +51,7 @@ export default function App() {
   const [page, setPage] = useState(location.hash === '#admin' ? 'admin' : 'home');
   const [form, setForm] = useState(emptyForm);
   const [busy, setBusy] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState('warning');
   const [session, setSession] = useState(null);
@@ -84,6 +85,7 @@ export default function App() {
   async function submit(event) {
     event.preventDefault();
     setNotice('');
+    setRegistrationSuccess(false);
     if (!supabase) { showNotice('A conexão com o banco não está configurada. Confira VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY na Vercel.'); return; }
     if (!form.consentimento) { showNotice('Marque o consentimento para enviar sua inscrição.'); return; }
     setBusy(true);
@@ -96,7 +98,8 @@ export default function App() {
       return;
     }
     setForm(emptyForm);
-    showNotice('Inscrição recebida! A equipe vai conferir seu cadastro e enviar as orientações após a confirmação.', 'success');
+    setRegistrationSuccess(true);
+    showNotice('Inscrição recebida! Entre no grupo de WhatsApp para acompanhar os avisos e orientações.', 'success');
   }
 
   async function login(event) {
@@ -222,6 +225,7 @@ export default function App() {
         <div className="form-heading"><div><span className="section-kicker">VAGAS LIMITADAS</span><h2>Quero participar</h2><p>Preencha o formulário. Sua inscrição será conferida antes do envio das orientações de acesso.</p></div><div className="lock-art"><LockKeyhole size={24} /></div></div>
         {!supabase && <div className="notice warning">O formulário está temporariamente indisponível porque a conexão com o banco não foi configurada.</div>}
         {notice && page === 'home' && <div className={`notice ${noticeType}`} role="status">{notice}</div>}
+        {registrationSuccess && <a className="primary-btn whatsapp-group-link" href="https://chat.whatsapp.com/ECEFpDiYL3GF5B84AxuIaS?s=cl&p=i&mlu=4&ilr=4&iam=2" target="_blank" rel="noreferrer"><MessageCircle size={18} /> Entrar no grupo de WhatsApp <ArrowRight size={17} /></a>}
         <form onSubmit={submit}>
           <div className="form-grid">{questions.map(question => <Field key={question.name} q={question} value={form[question.name]} onChange={update} />)}</div>
           <label className="consent"><input type="checkbox" checked={form.consentimento} onChange={event => update('consentimento', event.target.checked)} /><span>Concordo com o uso dos dados informados para gerenciar minha inscrição e receber contato sobre a Sala Secreta I.D.E.ia. <small>Os dados não serão exibidos publicamente.</small></span></label>
