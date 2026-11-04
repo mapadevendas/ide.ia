@@ -28,6 +28,7 @@ const questions = [
 ];
 
 const statusOptions = [
+  { value: 'lista_espera_dezembro', label: 'Lista de espera — dezembro' },
   { value: 'nova', label: 'Nova inscrição' },
   { value: 'contato_realizado', label: 'Contato realizado' },
   { value: 'confirmada', label: 'Confirmada' },
@@ -89,7 +90,7 @@ export default function App() {
     if (!supabase) { showNotice('A conexão com o banco não está configurada. Confira VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY na Vercel.'); return; }
     if (!form.consentimento) { showNotice('Marque o consentimento para enviar sua inscrição.'); return; }
     setBusy(true);
-    const payload = { ...form, status: 'nova', convite_enviado: false };
+    const payload = { ...form, status: 'lista_espera_dezembro', convite_enviado: false };
     const { error } = await supabase.from(TABLE).insert(payload);
     setBusy(false);
     if (error) {
@@ -99,7 +100,7 @@ export default function App() {
     }
     setForm(emptyForm);
     setRegistrationSuccess(true);
-    showNotice('Inscrição recebida! Entre no grupo de WhatsApp para acompanhar os avisos e orientações.', 'success');
+    showNotice('Cadastro recebido! Você está na lista de espera de dezembro. A equipe entrará em contato com as próximas informações.', 'success');
   }
 
   async function login(event) {
@@ -213,30 +214,29 @@ export default function App() {
     {page === 'home' ? <main>
       <section className="hero">
         <div className="glow glow-one" /><div className="glow glow-two" />
-        <div className="eyebrow"><Sparkles size={15} /> UMA NOVA FORMA DE TRABALHAR COM IA</div>
-        <h1>Você não precisa de <em>mais ferramentas.</em><br className="desktop-break" /> Precisa fazer melhor com o que já tem.</h1>
-        <p className="hero-copy">Identifica. Direciona. Expande. Três encontros práticos para organizar ideias, simplificar processos e transformar IA em resultado no trabalho.</p>
+        <div className="eyebrow"><Sparkles size={15} /> PRÓXIMA EDIÇÃO · DEZEMBRO</div>
+        <h1>As vagas desta edição estão <em>encerradas.</em><br className="desktop-break" /> Entre na lista de espera para dezembro.</h1>
+        <p className="hero-copy">A próxima Sala Secreta I.D.E.ia acontece em dezembro. Cadastre-se para receber as informações e ser avisado quando as inscrições abrirem.</p>
         <div className="pillars"><span><i>01</i> Identifica</span><span><i>02</i> Direciona</span><span><i>03</i> Expande</span></div>
-        <div className="event-meta"><span>16, 17 e 18 de novembro</span><span>19h · Online e ao vivo</span></div>
-        <div className="scarcity"><span className="live-dot" /> Apenas <strong>{CAPACITY} vagas</strong> para esta edição.</div>
+        <div className="event-meta"><span>Próxima edição: dezembro</span><span>Online e ao vivo</span></div>
+        <div className="scarcity"><span className="live-dot" /> <strong>Vagas encerradas</strong> para novembro.</div>
       </section>
 
       <section className="form-wrap" id="inscricao">
-        <div className="form-heading"><div><span className="section-kicker">VAGAS LIMITADAS</span><h2>Quero participar</h2><p>Preencha o formulário. Sua inscrição será conferida antes do envio das orientações de acesso.</p></div><div className="lock-art"><LockKeyhole size={24} /></div></div>
+        <div className="form-heading"><div><span className="section-kicker">LISTA DE ESPERA · DEZEMBRO</span><h2>Quero entrar na lista de espera</h2><p>Preencha seus dados para receber o aviso da próxima edição assim que as inscrições forem abertas.</p></div><div className="lock-art"><LockKeyhole size={24} /></div></div>
         {!supabase && <div className="notice warning">O formulário está temporariamente indisponível porque a conexão com o banco não foi configurada.</div>}
         {notice && page === 'home' && <div className={`notice ${noticeType}`} role="status">{notice}</div>}
         {registrationSuccess ? <div className="registration-confirmation" role="status">
           <div className="confirmation-icon"><CheckCircle2 size={34} /></div>
-          <span className="section-kicker">INSCRIÇÃO RECEBIDA</span>
-          <h2>Você deu o primeiro passo.</h2>
-          <p>Sua inscrição foi registrada. Entre no grupo oficial de WhatsApp para acompanhar os avisos e receber as próximas orientações da Sala Secreta I.D.E.ia.</p>
-          <a className="primary-btn whatsapp-group-link" href="https://chat.whatsapp.com/CiRek9ImDsO9d2ntXBTQJj?s=cl&p=i&mlu=4&ilr=4&iam=2" target="_blank" rel="noreferrer"><MessageCircle size={18} /> Entrar no grupo de WhatsApp <ArrowRight size={17} /></a>
-          <p className="privacy-note">A entrada no grupo é feita por você ao tocar no botão. Guarde esta página até concluir.</p>
+          <span className="section-kicker">LISTA DE ESPERA CONFIRMADA</span>
+          <h2>Seu interesse foi registrado!</h2>
+          <p>Você está na lista de espera para a edição de dezembro da Sala Secreta I.D.E.ia. Nossa equipe entrará em contato quando as inscrições forem abertas.</p>
+          <p className="privacy-note">Fique de olho no seu WhatsApp e e-mail para receber as novidades.</p>
         </div> : <form onSubmit={submit}>
           <div className="form-grid">{questions.map(question => <Field key={question.name} q={question} value={form[question.name]} onChange={update} />)}</div>
           <label className="consent"><input type="checkbox" checked={form.consentimento} onChange={event => update('consentimento', event.target.checked)} /><span>Concordo com o uso dos dados informados para gerenciar minha inscrição e receber contato sobre a Sala Secreta I.D.E.ia. <small>Os dados não serão exibidos publicamente.</small></span></label>
-          <button className="primary-btn" type="submit" disabled={busy || !supabase}>{busy ? 'Enviando inscrição...' : 'Enviar minha inscrição'} <ArrowRight size={17} /></button>
-          <p className="privacy-note">Sua inscrição será conferida pela equipe antes do envio das orientações de acesso.</p>
+          <button className="primary-btn" type="submit" disabled={busy || !supabase}>{busy ? 'Enviando...' : 'Entrar na lista de espera'} <ArrowRight size={17} /></button>
+          <p className="privacy-note">Ao enviar, você autoriza o contato sobre a próxima edição em dezembro.</p>
         </form>}
       </section>
 
