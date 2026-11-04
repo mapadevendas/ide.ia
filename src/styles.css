@@ -37,7 +37,7 @@ main { width: min(100% - 40px, 1040px); margin-inline: auto; flex: 1; }
   border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(15,15,16,.82);
 }
 .brand { display: flex; align-items: center; gap: 18px; min-width: 0; color: var(--white); text-decoration: none; }
-.brand-logo { width: 112px; max-height: 44px; object-fit: contain; object-position: left center; }
+.brand-logo { width: 178px; max-height: 58px; object-fit: contain; object-position: left center; mix-blend-mode: screen; }
 .brand-divider { width: 1px; height: 30px; background: rgba(255,255,255,.22); flex: 0 0 1px; }
 .brand-sub { font-size: 10px; letter-spacing: .12em; line-height: 1.5; color: #d5d1df; }
 .brand-sub strong { display: block; color: var(--orange-light); font-size: 14px; letter-spacing: .04em; }
@@ -106,7 +106,7 @@ textarea { resize: vertical; min-height: 105px; line-height: 1.5; }
 .notice.warning { color: #ffcf9d; border-color: rgba(255,122,26,.28); background: rgba(255,122,26,.08); }
 .notice.success { color: #b9f3ce; border-color: rgba(72,187,120,.28); background: rgba(72,187,120,.09); }
 .bottom-note { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0 auto 55px; text-align: center; }
-.bottom-brand-logo { width: 105px; max-height: 40px; object-fit: contain; opacity: .9; }
+.bottom-brand-logo { width: 150px; max-height: 52px; object-fit: contain; opacity: .95; mix-blend-mode: screen; }
 .bottom-note p { margin: 6px 0 0; font-size: 13px; }
 .bottom-note p b { color: var(--orange-light); }
 .bottom-note small { color: var(--muted); font-size: 11px; }
@@ -148,7 +148,7 @@ td a { white-space: nowrap; }
 @media (max-width: 760px) {
   .topbar { min-height: 70px; padding: 12px 16px; gap: 10px; }
   .brand { gap: 10px; }
-  .brand-logo { width: 82px; max-height: 34px; }
+  .brand-logo { width: 142px; max-height: 48px; }
   .brand-sub { font-size: 8px; }
   .brand-sub strong { font-size: 12px; }
   .admin-link { padding: 9px 10px; font-size: 11px; gap: 5px; }
@@ -164,7 +164,7 @@ td a { white-space: nowrap; }
   .table-tools .ghost-btn { min-height: 42px; }
 }
 @media (max-width: 520px) {
-  .brand-logo { width: 65px; }
+  .brand-logo { width: 112px; max-height: 40px; }
   .brand-divider { height: 26px; }
   .admin-link { max-width: 42px; overflow: hidden; white-space: nowrap; font-size: 0; padding: 10px; }
   .admin-link svg { flex: 0 0 auto; }
