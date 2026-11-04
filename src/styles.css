@@ -186,3 +186,32 @@ td a { white-space: nowrap; }
   .crm-head .ghost-btn { padding: 9px; }
   .stats span { font-size: 10px; }
 }
+
+
+.registration-confirmation {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 28px;
+  margin-top: 20px;
+  border: 1px solid rgba(106, 59, 190, .45);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(46, 31, 107, .32), rgba(30, 30, 32, .92));
+}
+.registration-confirmation .confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  color: var(--orange-light);
+  background: rgba(255, 122, 26, .12);
+}
+.registration-confirmation h2,
+.registration-confirmation p { margin: 0; }
+.registration-confirmation h2 { font-family: 'Manrope', sans-serif; font-size: clamp(24px, 4vw, 32px); }
+.registration-confirmation > p { max-width: 620px; color: var(--muted); line-height: 1.65; }
+.registration-confirmation .whatsapp-group-link { width: 100%; justify-content: center; text-decoration: none; }
+.registration-confirmation .privacy-note { font-size: 13px; }
+@media (max-width: 560px) { .registration-confirmation { padding: 22px; } }
