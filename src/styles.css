@@ -293,3 +293,9 @@ input, select, textarea { max-width: 100%; }
   .table-tools > * { min-width: 0; }
   .table-scroll table { min-width: 780px; }
 }
+
+/* Ajuste de logo Cardume: maior e sem bloco preto aparente */
+.brand-logo { width: 178px !important; max-width: 178px !important; max-height: 58px !important; object-fit: contain; mix-blend-mode: screen; }
+.bottom-brand-logo { width: 150px; max-height: 52px; object-fit: contain; mix-blend-mode: screen; }
+@media (max-width: 760px) { .brand-logo { width: 142px !important; max-width: 142px !important; max-height: 48px !important; } }
+@media (max-width: 520px) { .brand-logo { width: 112px !important; max-width: 112px !important; max-height: 40px !important; } }
