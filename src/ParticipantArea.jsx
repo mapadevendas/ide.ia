@@ -36,7 +36,6 @@ export default function ParticipantArea() {
   const [step, setStep] = useState(0);
   const [map, setMap] = useState(null);
   const [savedMap, setSavedMap] = useState(null);
-  const [edit, setEdit] = useState(false);
   const [revisingDiagnosis, setRevisingDiagnosis] = useState(false);
   const [busy, setBusy] = useState(false);
   const [tasks, setTasks] = useState([]);
@@ -303,48 +302,6 @@ export default function ParticipantArea() {
     }
   }
 
-  function changeNode(id, index, value) {
-    setMap(current => ({
-      ...current,
-      mindmap: current.mindmap.map(node => node.id === id
-        ? { ...node, items: node.items.map((item, itemIndex) => itemIndex === index ? value : item) }
-        : node)
-    }));
-  }
-
-  function addNode(id) {
-    setMap(current => ({
-      ...current,
-      mindmap: current.mindmap.map(node => node.id === id
-        ? { ...node, items: [...node.items, 'Nova ideia'] }
-        : node)
-    }));
-  }
-
-  function deleteNode(id, index) {
-    setMap(current => ({
-      ...current,
-      mindmap: current.mindmap.map(node => node.id === id
-        ? { ...node, items: node.items.filter((_, itemIndex) => itemIndex !== index) }
-        : node)
-    }));
-  }
-
-  async function toggleMapEdit() {
-    if (!edit) {
-      setEdit(true);
-      return;
-    }
-    const ok = await save(answers, map?.mindmap || makeMap(answers));
-    if (ok) setEdit(false);
-  }
-
-  function cancelMapEdit() {
-    setMap(savedMap);
-    setEdit(false);
-    setNotice('Alterações descartadas. O mapa salvo anteriormente foi restaurado.');
-  }
-
   async function finishDiagnosis() {
     const ok = await save(
       answers,
@@ -353,7 +310,6 @@ export default function ParticipantArea() {
     );
     if (ok) {
       setRevisingDiagnosis(false);
-      setEdit(false);
     }
   }
 
@@ -438,7 +394,6 @@ export default function ParticipantArea() {
                 const ok = await save(answers, [], 'Diagnóstico enviado. O mapa da aula será disponibilizado depois que a tutora preparar o planejamento.');
                 if (ok) {
                   setStep(0);
-                  setEdit(false);
                 }
               }}
               disabled={busy || qs.some(item => {
