@@ -392,3 +392,81 @@ td a { white-space: nowrap; }
   .print-group table{font-size:7pt}
   .print-group th,.print-group td{font-size:6.5pt;padding:3px}
 }
+
+
+/* CRM tutor: radial mind map, participant detail sheet and Trello-like Kanban */
+.idea-map-radial{position:relative;min-height:700px;overflow:hidden;padding:18px;border:1px solid var(--border);border-radius:18px;background:radial-gradient(circle at 50% 50%,rgba(124,70,160,.12),transparent 22%),#201a26}
+.idea-map-radial .idea-map-root{position:absolute;z-index:4;top:50%;left:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;width:190px;height:150px;margin:0;transform:translate(-50%,-50%);border:3px solid #d7b2eb;border-radius:50%;background:linear-gradient(145deg,#6b278c,#321044);color:#fff;text-align:center;box-shadow:0 0 0 9px rgba(153,100,185,.08),0 15px 34px #0005}
+.idea-map-radial .idea-map-root svg{color:#f1c874}
+.idea-map-radial .idea-map-root span{font-size:9px;font-weight:900;letter-spacing:.15em;color:#f3cf83}
+.idea-map-radial .idea-map-root strong{font-size:13px}
+.idea-map-radial .idea-map-lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.idea-map-radial .idea-map-lines path{fill:none;stroke-width:4;stroke-linecap:round;opacity:.9}
+.idea-map-radial .branch-identify{stroke:#ad78d1}
+.idea-map-radial .branch-direct{stroke:#d7aa56}
+.idea-map-radial .branch-expand{stroke:#67b98a}
+.idea-map-radial .idea-map-branches{position:absolute;inset:0;z-index:2;display:block}
+.idea-map-radial .idea-map-branch{position:absolute;width:33%;padding:16px;border:1.5px solid var(--border);border-radius:18px;background:#292230;box-shadow:0 8px 20px #0003}
+.idea-map-radial .idea-map-branch.i{top:50%;left:2%;transform:translateY(-50%);border-color:#9464b5}
+.idea-map-radial .idea-map-branch.d{top:3%;right:2%;border-color:#c99b47}
+.idea-map-radial .idea-map-branch.e{right:2%;bottom:3%;border-color:#5da57c}
+.idea-map-radial .idea-map-branch>span{font-size:10px;font-weight:900;letter-spacing:.13em;color:#ddb6f2}
+.idea-map-radial .idea-map-branch.d>span{color:#f2cf89}
+.idea-map-radial .idea-map-branch.e>span{color:#9de0b4}
+.idea-map-radial .idea-map-branch h3{margin:7px 0 12px;color:#fff;font-size:17px}
+.idea-map-radial .idea-map-nodes{display:grid;gap:8px}
+.idea-map-radial .idea-map-node{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:10px 12px;border:1px solid #5c4568;border-radius:999px;background:#211b28}
+.idea-map-radial .idea-map-node strong{font-size:11px;color:#f4ebf8;line-height:1.4}
+.idea-map-radial .idea-map-node b{flex:none;font-size:10px;color:#d9b7ef}
+.idea-map-radial .idea-map-branch.d .idea-map-node{border-color:#695638}
+.idea-map-radial .idea-map-branch.d .idea-map-node b{color:#f2ca78}
+.idea-map-radial .idea-map-branch.e .idea-map-node{border-color:#405e4b}
+.idea-map-radial .idea-map-branch.e .idea-map-node b{color:#a8e0ba}
+.idea-map-radial .idea-map-caption{position:absolute;right:12px;bottom:4px;left:12px;text-align:center;color:var(--muted);font-size:10px}
+.kanban-column{transition:background .15s,border-color .15s}
+.kanban-column:has(.kanban-card[draggable="true"]):hover{background:rgba(145,97,173,.08)}
+.kanban-card[draggable="true"]{cursor:grab}
+.kanban-card.is-dragging{opacity:.42;transform:scale(.98)}
+.kanban-tool-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.kanban-tool-links a{padding:5px 8px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.035);color:#ddc6ef;font-size:10px;font-weight:800;text-decoration:none}
+.kanban-tool-links a:hover{background:rgba(160,113,190,.14)}
+.admin-diagnosis-modal{width:min(1050px,100%);max-height:90vh;overflow:auto;padding:24px;border:1px solid var(--border);border-radius:18px;background:#211b28;box-shadow:0 24px 80px #0009}
+.admin-diagnosis-modal>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}
+.admin-diagnosis-modal>header h2{margin:6px 0;color:#fff;font-size:24px}
+.admin-diagnosis-modal>header p{margin:0;color:var(--muted);font-size:12px}
+.admin-diagnosis-modal>h3{margin:18px 0 10px;color:#f1e8f6;font-size:15px}
+.diagnosis-modal-meta{display:flex;flex-wrap:wrap;gap:15px;color:var(--muted);font-size:11px}
+.admin-diagnosis-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.admin-diagnosis-answers article{padding:12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.035)}
+.admin-diagnosis-answers strong{display:block;color:var(--orange-light);font-size:11px}
+.admin-diagnosis-answers p{margin:6px 0 0;color:#f4edf7;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.admin-participant-mindmap{padding:18px;border:1px solid var(--border);border-radius:14px;background:#faf7fc}
+.admin-participant-mindmap-root{display:grid;place-items:center;width:170px;height:90px;margin:0 auto 20px;border-radius:50%;background:linear-gradient(140deg,#713195,#351047);color:#fff;font-size:13px;font-weight:900;text-align:center}
+.admin-participant-mindmap-branches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.admin-participant-branch{padding:13px;border:1px solid #d8c5e4;border-top:3px solid #9464b5;border-radius:13px;background:white}
+.admin-participant-branch.d{border-top-color:#d3a34c}
+.admin-participant-branch.e{border-top-color:#5aa879}
+.admin-participant-branch>strong{display:block;margin-bottom:10px;color:#40264d;font-size:13px}
+.admin-participant-node{margin-top:7px;padding:9px 10px;border:1px solid #e5d9eb;border-radius:999px;background:#fff;color:#554260;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.admin-participant-branch.d .admin-participant-node{border-color:#efe1c4}
+.admin-participant-branch.e .admin-participant-node{border-color:#d4e8da}
+.admin-diagnosis-modal>footer{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px;padding-top:15px;border-top:1px solid var(--border)}
+@media(max-width:900px){
+  .idea-map-radial{min-height:0;padding:18px}
+  .idea-map-radial .idea-map-root{position:relative;top:auto;left:auto;width:190px;height:100px;margin:0 auto 18px;transform:none;border-radius:999px}
+  .idea-map-radial .idea-map-lines{display:none}
+  .idea-map-radial .idea-map-branches{position:relative;inset:auto;display:grid;gap:12px}
+  .idea-map-radial .idea-map-branch.i,.idea-map-radial .idea-map-branch.d,.idea-map-radial .idea-map-branch.e{position:relative;inset:auto;width:100%;transform:none}
+  .idea-map-radial .idea-map-caption{position:relative;inset:auto;margin-top:12px}
+  .admin-participant-mindmap-branches{grid-template-columns:1fr}
+}
+@media(max-width:600px){.admin-diagnosis-modal{padding:15px}.admin-diagnosis-answers{grid-template-columns:1fr}.admin-diagnosis-modal>header h2{font-size:19px}}
+@media print{
+  .admin-diagnosis-modal,.admin-modal-backdrop{display:none!important}
+  .idea-map-radial{min-height:650px}
+  .idea-map-radial .idea-map-root{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+  .idea-map-radial .idea-map-branches{position:absolute;inset:0;display:block}
+  .idea-map-radial .idea-map-branch.i{position:absolute;top:50%;left:2%;width:33%;transform:translateY(-50%)}
+  .idea-map-radial .idea-map-branch.d{position:absolute;top:3%;right:2%;width:33%}
+  .idea-map-radial .idea-map-branch.e{position:absolute;right:2%;bottom:3%;width:33%}
+}

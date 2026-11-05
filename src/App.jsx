@@ -43,6 +43,10 @@ const exportColumns = [
   ['Perfil profissional', 'perfil'], ['Experiência com IA', 'experiencia_ia'],
   ['Ferramentas utilizadas', 'ferramentas_utilizadas'], ['Site / presença digital', 'site'],
   ['Objetivo / necessidade', 'objetivo'], ['Investimento mensal', 'investimento_mensal'],
+  ['Diagnóstico · Área', 'diagnostico_area'], ['Diagnóstico · Objetivo', 'diagnostico_goal'],
+  ['Diagnóstico · Nível de uso', 'diagnostico_level'], ['Diagnóstico · Ferramentas', 'diagnostico_tools'],
+  ['Diagnóstico · Tarefas', 'diagnostico_tasks'], ['Diagnóstico · Presença digital', 'diagnostico_social'],
+  ['Diagnóstico · Processos', 'diagnostico_systems'], ['Diagnóstico · Primeiro resultado', 'diagnostico_first'],
   ['Status', 'status'], ['Convite enviado', 'convite_enviado'], ['Data de inscrição', 'created_at']
 ];
 
@@ -332,15 +336,45 @@ export default function App() {
     showNotice('Cadastro excluído com sucesso.', 'success');
   }
 
+  function getExportValue(row, key) {
+    if (key.startsWith('diagnostico_')) {
+      const direct = row[key];
+      if (direct !== undefined) return Array.isArray(direct) ? direct.join(' • ') : (direct || '');
+      const map = adminMaps.find(item => item.participant_email && item.participant_email.toLowerCase() === (row.email || '').toLowerCase());
+      const answerKey = key.replace('diagnostico_', '');
+      const value = map?.answers?.[answerKey];
+      return Array.isArray(value) ? value.join(' • ') : (value || '');
+    }
+    if (key === 'status') return statusLabel(row.status);
+    if (key === 'convite_enviado') return row.convite_enviado ? 'Sim' : 'Não';
+    if (key === 'created_at') return row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : '';
+    return row[key] ?? '';
+  }
+
+  function mapToExportRow(map) {
+    const registration = adminRows.find(row => row.email?.toLowerCase() === map.participant_email?.toLowerCase()) || {};
+    const answers = map.answers || {};
+    return {
+      ...registration,
+      nome: map.participant_name || registration.nome || 'Participante',
+      email: map.participant_email || registration.email || '',
+      whatsapp: map.participant_whatsapp || registration.whatsapp || '',
+      status: map.registration_status || registration.status || '',
+      diagnostico_area: answers.area || '',
+      diagnostico_goal: answers.goal || '',
+      diagnostico_level: answers.level || '',
+      diagnostico_tools: answers.tools || '',
+      diagnostico_tasks: answers.tasks || [],
+      diagnostico_social: answers.social || '',
+      diagnostico_systems: answers.systems || '',
+      diagnostico_first: answers.first || ''
+    };
+  }
+
   function exportExcel(rows, filename) {
     const csvRows = [
       exportColumns.map(column => column[0]),
-      ...rows.map(row => exportColumns.map(([label, key]) => {
-        if (key === 'status') return statusLabel(row.status);
-        if (key === 'convite_enviado') return row.convite_enviado ? 'Sim' : 'Não';
-        if (key === 'created_at') return row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : '';
-        return row[key] ?? '';
-      }))
+      ...rows.map(row => exportColumns.map(([label, key]) => getExportValue(row, key)))
     ];
     const csv = csvRows.map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(';')).join('\r\n');
     const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
@@ -453,8 +487,8 @@ export default function App() {
         <div className="table-tools">
           <label className="search-box"><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar nome, WhatsApp, e-mail ou necessidade" /></label>
           <select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="todos">Todos os status</option>{statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
-          <button className="ghost-btn" onClick={() => exportExcel(filtered, 'sala-secreta-grupo.csv')}><FileSpreadsheet size={16} /> Excel do grupo (.csv)</button>
-          <button className="ghost-btn" onClick={() => requestPrint({ type: 'group', rows: filtered })}><FileText size={16} /> PDF do grupo</button>
+          <button className="ghost-btn" onClick={() => exportExcel(filtered, 'sala-secreta-grupo.csv')}><FileSpreadsheet size={16} /> Excel · inscrições + diagnóstico (.csv)</button>
+          <button className="ghost-btn" onClick={() => requestPrint({ type: 'group', rows: filtered })}><FileText size={16} /> PDF · inscrições + diagnóstico</button>
           <button className="ghost-btn" onClick={() => requestPrint({ type: 'training', rows: filtered, map: trainingMap })}><Lightbulb size={16} /> Mapa I.D.E.ia</button>
           <button className="ghost-btn" onClick={loadAdmin}><RefreshCw size={16} /> Atualizar</button>
         </div>
@@ -480,48 +514,44 @@ export default function App() {
             <div><strong>{trainingMap.lowExperience}</strong><span>ainda não usam IA ou usam raramente</span></div>
             <div><strong>{trainingMap.needs.length}</strong><span>frentes de necessidade encontradas</span></div>
           </div>
-          <div className="idea-map-canvas">
-            <svg className="idea-map-lines" viewBox="0 0 1000 460" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M500 76 C500 138 170 120 170 220" />
-              <path d="M500 76 L500 220" />
-              <path d="M500 76 C500 138 830 120 830 220" />
+          <div className="idea-map-canvas idea-map-radial">
+            <svg className="idea-map-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+              <path className="branch-identify" d="M500 350 C410 350 340 350 270 350"/>
+              <path className="branch-direct" d="M500 350 C570 290 620 190 710 180"/>
+              <path className="branch-expand" d="M500 350 C570 410 620 520 710 520"/>
             </svg>
-            <div className="idea-map-root"><Network size={20}/><span>NECESSIDADES DO GRUPO</span><strong>{trainingMap.total} participantes</strong></div>
+            <div className="idea-map-root"><Network size={20}/><span>DIAGNÓSTICO DO GRUPO</span><strong>{trainingMap.total} respostas analisadas</strong></div>
             <div className="idea-map-branches">
-              <article className="idea-map-branch identify">
-                <span>01 · IDENTIFICA</span><h3>O que precisa melhorar?</h3>
-                <p>As dores, tarefas e oportunidades que aparecem nas respostas.</p>
-                {trainingMap.needs.map(need => <div className="idea-map-node" key={need.key}><strong>{need.title}</strong><b>{need.count} pessoa(s)</b><small>{need.examples[0] || 'Necessidade indicada no formulário.'}</small></div>)}
-              </article>
-              <article className="idea-map-branch direct">
-                <span>02 · DIRECIONA</span><h3>Qual solução ensinar?</h3>
-                <p>Transformar cada necessidade em uma prática concreta.</p>
-                {trainingMap.needs.map(need => <div className="idea-map-node" key={need.key}><strong>{need.action}</strong><small>Ferramenta: {need.tool}</small></div>)}
-              </article>
-              <article className="idea-map-branch expand">
-                <span>03 · EXPANDE</span><h3>Como colocar em prática?</h3>
-                <p>Testar, medir resultados e ampliar o que funcionar.</p>
-                {trainingMap.actions.map(action => <div className="idea-map-node" key={action.stage}><strong>{action.title}</strong><small>{action.detail}</small></div>)}
-              </article>
+              {trainingMap.mapBranches.map(branch=>(
+                <article className={'idea-map-branch '+branch.id} key={branch.id}>
+                  <span>{branch.stage}</span><h3>{branch.title}</h3>
+                  <div className="idea-map-nodes">
+                    {branch.items.length ? branch.items.map((item,index)=><div className="idea-map-node" key={index}><strong>{item.text}</strong><b>{item.count} resposta(s)</b></div>) : <div className="idea-map-node"><strong>Aguardando respostas</strong><small>Os tópicos aparecerão quando os participantes concluírem o diagnóstico.</small></div>}
+                  </div>
+                </article>
+              ))}
             </div>
+            <p className="idea-map-caption">Mapa coletivo gerado pelas respostas individuais: necessidades, caminhos de solução e resultados desejados.</p>
           </div>
-
           <div className="training-kanban-head"><div><span className="section-kicker">QUADRO DE EXECUÇÃO</span><h3>Kanban das necessidades do diagnóstico</h3><p>Mova cada necessidade conforme o conteúdo for preparado e aplicado no treinamento.</p></div><Workflow size={28}/></div>
           <div className="training-kanban">
             {[
               { key: 'para_fazer', title: 'Para fazer', className: 'todo' },
               { key: 'em_andamento', title: 'Em andamento', className: 'doing' },
               { key: 'feito', title: 'Feito', className: 'done' }
-            ].map(column => <section className={`kanban-column ${column.className}`} key={column.key}>
+            ].map(column => <section className={`kanban-column ${column.className}`} key={column.key}
+              onDragOver={event=>event.preventDefault()}
+              onDrop={event=>{event.preventDefault();const task=trainingTasks.find(item=>item.id===draggingTaskId);if(task)updateTaskStatus(task,column.key);setDraggingTaskId(null);}}>
               <header><strong>{column.title}</strong><b>{trainingTasks.filter(task => trainingMap.needs.some(need => need.key === task.need_key) && task.task_status === column.key).length}</b></header>
               {trainingMap.needs.filter(need => (trainingTasks.find(task => task.need_key === need.key)?.task_status || 'para_fazer') === column.key).map(need => {
                 const task = trainingTasks.find(item => item.need_key === need.key);
-                return <article className="kanban-card" key={need.key}>
+                return <article className={`kanban-card ${draggingTaskId===task?.id?'is-dragging':''}`} key={need.key} draggable={Boolean(task)} onDragStart={()=>setDraggingTaskId(task?.id||null)} onDragEnd={()=>setDraggingTaskId(null)}>
                   <span className="kanban-count">{need.count} resposta(s)</span>
                   <h4>{need.title}</h4>
                   <p>{need.action}</p>
                   <small><b>Ferramenta:</b> {need.tool}</small>
                   <button className="prompt-btn" onClick={() => copyPrompt(need.prompt)}><ClipboardCopy size={14}/> Copiar prompt</button>
+                  <div className="kanban-tool-links"><a href="https://chatgpt.com/" target="_blank" rel="noreferrer">ChatGPT</a><a href="https://claude.ai/new" target="_blank" rel="noreferrer">Claude</a><a href="https://lovable.dev/" target="_blank" rel="noreferrer">Lovable</a></div>
                   <label>Mover para<select value={column.key} onChange={event => task && updateTaskStatus(task, event.target.value)} disabled={!task}><option value="para_fazer">Para fazer</option><option value="em_andamento">Em andamento</option><option value="feito">Feito</option></select></label>
                 </article>;
               })}
@@ -530,12 +560,12 @@ export default function App() {
           </div>
           {!trainingTasks.length && <div className="notice warning">O Kanban precisa da migração de banco ideia_training_tasks. O quadro será ativado depois de aplicar a migração no Supabase.</div>}
           <div className="training-prompt-actions">
-            {trainingMap.actions.map(action => <article key={action.stage}><span>{action.stage}</span><strong>{action.title}</strong><p>{action.detail}</p><small>Ferramentas: {action.tool}</small><button className="prompt-btn" onClick={() => copyPrompt(action.prompt)}><ClipboardCopy size={14}/> Copiar prompt para {action.stage.toLowerCase()}</button></article>)}
+            {trainingMap.actions.map(action => <article key={action.stage}><span>{action.stage}</span><strong>{action.title}</strong><p>{action.detail}</p><small>Ferramentas: {action.tool}</small><button className="prompt-btn" onClick={() => copyPrompt(action.prompt)}><ClipboardCopy size={14}/> Copiar prompt para {action.stage.toLowerCase()}</button><div className="kanban-tool-links"><a href="https://chatgpt.com/" target="_blank" rel="noreferrer">ChatGPT</a><a href="https://claude.ai/new" target="_blank" rel="noreferrer">Claude</a><a href="https://lovable.dev/" target="_blank" rel="noreferrer">Lovable</a></div></article>)}
           </div>
         </section>
         <section className="admin-maps-section">
           <div className="crm-head"><div><span className="section-kicker">ACOMPANHAMENTO I.D.E.ia</span><h2>Mapas mentais dos participantes</h2><p>Visualização administrativa dos diagnósticos e planos individuais.</p></div></div>
-          {adminMaps.length === 0 ? <div className="empty-state"><LockKeyhole size={28}/><p>Nenhum mapa mental criado ainda.</p></div> : <div className="admin-map-grid">{adminMaps.map(item => <article className="admin-map-card" key={item.id}><div><strong>{item.title || "Meu Plano I.D.E.ia"}</strong><small>{item.user_id}</small><small>Atualizado em {new Date(item.updated_at).toLocaleString("pt-BR")}</small></div><button className="mini-btn secondary" onClick={() => alert(JSON.stringify({respostas:item.answers, mapa:item.mindmap}, null, 2))}>Ver diagnóstico e mapa</button></article>)}</div>}
+          {adminMaps.length === 0 ? <div className="empty-state"><LockKeyhole size={28}/><p>Nenhum mapa mental criado ainda. Os participantes autorizados aparecerão aqui depois de preencher e salvar o diagnóstico.</p></div> : <div className="admin-map-grid">{adminMaps.map(item => <article className="admin-map-card" key={item.id}><div><strong>{item.participant_name || item.title || 'Participante'}</strong><small>{item.participant_email || 'Cadastro vinculado pelo usuário autenticado'}</small><small>{item.participant_whatsapp || item.user_id}</small><small>Atualizado em {new Date(item.updated_at).toLocaleString('pt-BR')}</small></div><button className="mini-btn secondary" onClick={() => setSelectedAdminMap(item)}>Abrir diagnóstico e mapa</button></article>)}</div>}
         </section>
         <p className="admin-hint">Fluxo: Nova inscrição → Contato realizado → Confirmada → Convite enviado.</p>
       </section>}
@@ -544,7 +574,7 @@ export default function App() {
       <section className="admin-answer-modal" role="dialog" aria-modal="true" aria-label="Respostas individuais">
         <header><div><span className="section-kicker">RESPOSTAS INDIVIDUAIS</span><h2>{selectedRow.nome}</h2><p>{selectedRow.email} · {selectedRow.whatsapp}</p></div><button className="icon-close" onClick={() => setSelectedRow(null)} aria-label="Fechar"><X size={20}/></button></header>
         <div className="admin-answer-grid">
-          {exportColumns.map(([label,key]) => <article key={key}><strong>{label}</strong><p>{key === 'status' ? statusLabel(selectedRow.status) : key === 'convite_enviado' ? (selectedRow.convite_enviado ? 'Sim' : 'Não') : key === 'created_at' && selectedRow.created_at ? new Date(selectedRow.created_at).toLocaleString('pt-BR') : (selectedRow[key] || '—')}</p></article>)}
+          {exportColumns.map(([label,key]) => <article key={key}><strong>{label}</strong><p>{getExportValue(selectedRow,key) || '—'}</p></article>)}
         </div>
         <footer>
           <button className="ghost-btn" onClick={() => exportExcel([selectedRow], `respostas-${String(selectedRow.nome || 'participante').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`)}><FileSpreadsheet size={16}/> Excel individual</button>
@@ -554,8 +584,46 @@ export default function App() {
       </section>
     </div>}
 
+    {selectedAdminMap && <div className="admin-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setSelectedAdminMap(null); }}>
+      <section className="admin-diagnosis-modal" role="dialog" aria-modal="true" aria-label="Diagnóstico e mapa do participante">
+        <header>
+          <div><span className="section-kicker">DIAGNÓSTICO INDIVIDUAL I.D.E.ia</span><h2>{selectedAdminMap.participant_name || 'Participante da Sala Secreta'}</h2>
+            <p>{selectedAdminMap.participant_email || selectedAdminMap.user_id}{selectedAdminMap.participant_whatsapp ? ' · ' + selectedAdminMap.participant_whatsapp : ''}</p>
+          </div>
+          <button className="icon-close" onClick={() => setSelectedAdminMap(null)} aria-label="Fechar"><X size={20}/></button>
+        </header>
+        <div className="diagnosis-modal-meta"><span>Atualizado em {new Date(selectedAdminMap.updated_at).toLocaleString('pt-BR')}</span><span>Status: {statusLabel(selectedAdminMap.registration_status || 'não vinculado')}</span></div>
+        <h3>Respostas do diagnóstico</h3>
+        <div className="admin-diagnosis-answers">
+          {[
+            ['Em qual área precisa de ajuda?','area'],['Principal objetivo com IA','goal'],['Como usa IA atualmente?','level'],
+            ['Ferramentas que utiliza','tools'],['Tarefas que mais consomem tempo','tasks'],
+            ['Organização da presença digital','social'],['Sistemas ou processos que gostaria de melhorar','systems'],
+            ['Primeiro resultado prático desejado','first']
+          ].map(([label,key]) => {
+            const value=selectedAdminMap.answers?.[key];
+            return <article key={key}><strong>{label}</strong><p>{Array.isArray(value)?value.join(' · '):(value||'Não informado')}</p></article>;
+          })}
+        </div>
+        <h3>Mapa mental salvo pelo participante</h3>
+        <div className="admin-participant-mindmap">
+          <div className="admin-participant-mindmap-root">PLANO I.D.E.ia</div>
+          <div className="admin-participant-mindmap-branches">
+            {(selectedAdminMap.mindmap||[]).map(node=><section className={'admin-participant-branch '+node.id} key={node.id}>
+              <strong>{node.title}</strong>{(node.items||[]).map((item,index)=><div className="admin-participant-node" key={index}>{item}</div>)}
+            </section>)}
+          </div>
+        </div>
+        <footer>
+          <button className="ghost-btn" onClick={() => exportExcel([mapToExportRow(selectedAdminMap)], 'diagnostico-' + String(selectedAdminMap.participant_name || 'participante').toLowerCase().replace(/[^a-z0-9]+/g,'-') + '.csv')}><FileSpreadsheet size={16}/> Excel do diagnóstico</button>
+          <button className="ghost-btn" onClick={() => requestPrint({type:'diagnosis',rows:[mapToExportRow(selectedAdminMap)],map:selectedAdminMap})}><FileText size={16}/> PDF do diagnóstico</button>
+          {selectedAdminMap.participant_email && <button className="ghost-btn" onClick={() => {const row=adminRows.find(item=>item.email?.toLowerCase()===selectedAdminMap.participant_email.toLowerCase());if(row){setSelectedAdminMap(null);setSelectedRow(row);}}}>Ver cadastro</button>}
+        </footer>
+      </section>
+    </div>}
+
     {printReport && <div className="print-report">
-      <header className="print-report-head"><span>SALA SECRETA I.D.E.ia</span><h1>{printReport.type === 'training' ? 'Mapa mental do treinamento I.D.E.ia' : printReport.type === 'individual' ? 'Respostas da inscrição' : 'Relatório de inscrições'}</h1><p>Gerado em {new Date().toLocaleString('pt-BR')} · {printReport.rows?.length || 0} participante(s)</p></header>
+      <header className="print-report-head"><span>SALA SECRETA I.D.E.ia</span><h1>{printReport.type === 'training' ? 'Mapa mental do treinamento I.D.E.ia' : printReport.type === 'diagnosis' ? 'Diagnóstico individual I.D.E.ia' : printReport.type === 'individual' ? 'Respostas da inscrição' : 'Relatório de inscrições'}</h1><p>Gerado em {new Date().toLocaleString('pt-BR')} · {printReport.rows?.length || 0} participante(s)</p></header>
       {printReport.type === 'training' ? <div className="print-training">
         <h2>IDENTIFICA · Necessidades observadas</h2>
         <p>Base analisada: {printReport.map.total} inscrição(ões). {printReport.map.lowExperience} pessoa(s) informaram que ainda não usam IA ou usam raramente.</p>
@@ -564,9 +632,15 @@ export default function App() {
         {printReport.map.needs.map(need => <article key={need.key}><h3>{need.title}</h3><p>{need.action}</p><p><strong>Ferramentas:</strong> {need.tool}</p><p><strong>Prompt:</strong> {need.prompt}</p></article>)}
         <h2>EXPANDE · Plano de aplicação</h2>
         {printReport.map.actions.map(action => <article key={action.stage}><h3>{action.stage} · {action.title}</h3><p>{action.detail}</p><p><strong>Ferramentas:</strong> {action.tool}</p><p><strong>Prompt:</strong> {action.prompt}</p></article>)}
+      </div> : printReport.type === 'diagnosis' ? <div className="print-individual">
+        <section><h2>{printReport.map.participant_name || 'Participante da Sala Secreta'}</h2><p>{printReport.map.participant_email || ''}</p>
+          <h3>Respostas do diagnóstico</h3>
+          <table><tbody>{[['Área','area'],['Objetivo','goal'],['Experiência com IA','level'],['Ferramentas','tools'],['Tarefas','tasks'],['Presença digital','social'],['Processos','systems'],['Primeiro resultado','first']].map(([label,key])=><tr key={key}><th>{label}</th><td>{Array.isArray(printReport.map.answers?.[key])?printReport.map.answers[key].join(' · '):(printReport.map.answers?.[key]||'—')}</td></tr>)}</tbody></table>
+          <h3>Mapa I.D.E.ia</h3>{(printReport.map.mindmap||[]).map(node=><article key={node.id}><h3>{node.title}</h3><ul>{(node.items||[]).map((item,index)=><li key={index}>{item}</li>)}</ul></article>)}
+        </section>
       </div> : printReport.type === 'individual' ? <div className="print-individual">
-        {printReport.rows.map(row => <section key={row.id}><h2>{row.nome}</h2><p>{row.email} · {row.whatsapp}</p><table><tbody>{exportColumns.map(([label,key]) => <tr key={key}><th>{label}</th><td>{key === 'status' ? statusLabel(row.status) : key === 'convite_enviado' ? (row.convite_enviado ? 'Sim' : 'Não') : key === 'created_at' && row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : (row[key] || '—')}</td></tr>)}</tbody></table></section>)}
-      </div> : <div className="print-group"><table><thead><tr>{exportColumns.map(([label]) => <th key={label}>{label}</th>)}</tr></thead><tbody>{printReport.rows.map(row => <tr key={row.id}>{exportColumns.map(([label,key]) => <td key={key}>{key === 'status' ? statusLabel(row.status) : key === 'convite_enviado' ? (row.convite_enviado ? 'Sim' : 'Não') : key === 'created_at' && row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : (row[key] || '—')}</td>)}</tr>)}</tbody></table></div>}
+        {printReport.rows.map(row => <section key={row.id}><h2>{row.nome}</h2><p>{row.email} · {row.whatsapp}</p><table><tbody>{exportColumns.map(([label,key]) => <tr key={key}><th>{label}</th><td>{getExportValue(row,key) || '—'}</td></tr>)}</tbody></table></section>)}
+      </div> : <div className="print-group"><table><thead><tr>{exportColumns.map(([label]) => <th key={label}>{label}</th>)}</tr></thead><tbody>{printReport.rows.map(row => <tr key={row.id}>{exportColumns.map(([label,key]) => <td key={key}>{getExportValue(row,key) || '—'}</td>)}</tr>)}</tbody></table></div>}
     </div>}
 
     <footer>© Sala Secreta I.D.E.ia <span>•</span> Identifica · Direciona · Expande</footer>

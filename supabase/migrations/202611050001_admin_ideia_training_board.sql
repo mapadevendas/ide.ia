@@ -65,3 +65,51 @@ for update
 to authenticated
 using (lower(coalesce(auth.jwt()->>'email', '')) = 'suporteapp9@gmail.com')
 with check (lower(coalesce(auth.jwt()->>'email', '')) = 'suporteapp9@gmail.com');
+
+
+-- Lista administrativa de mapas, com vínculo pelo e-mail autenticado.
+-- A função só retorna dados quando chamada pelo e-mail administrativo.
+create or replace function public.get_ideia_admin_maps()
+returns table (
+  id uuid,
+  user_id uuid,
+  title text,
+  answers jsonb,
+  mindmap jsonb,
+  updated_at timestamptz,
+  participant_name text,
+  participant_email text,
+  participant_whatsapp text,
+  registration_status text
+)
+language sql
+stable
+security definer
+set search_path = public, auth
+as $$
+  select
+    m.id,
+    m.user_id,
+    m.title,
+    m.answers,
+    m.mindmap,
+    m.updated_at,
+    coalesce(nullif(i.nome, ''), split_part(u.email, '@', 1)) as participant_name,
+    u.email as participant_email,
+    i.whatsapp as participant_whatsapp,
+    i.status as registration_status
+  from public.ideia_mindmaps m
+  join auth.users u on u.id = m.user_id
+  left join lateral (
+    select reg.nome, reg.whatsapp, reg.status
+    from public.inscricoes_sala_secreta reg
+    where lower(reg.email) = lower(u.email)
+    order by reg.created_at desc
+    limit 1
+  ) i on true
+  where lower(coalesce(auth.jwt()->>'email', '')) = 'suporteapp9@gmail.com'
+  order by m.updated_at desc;
+$$;
+
+revoke all on function public.get_ideia_admin_maps() from public;
+grant execute on function public.get_ideia_admin_maps() to authenticated;
