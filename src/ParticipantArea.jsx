@@ -124,7 +124,10 @@ export default function ParticipantArea() {
         setTasks(taskRows || []);
         setTasksLoading(false);
       } catch (error) {
-        if (active) setNotice(error.message || 'Não foi possível carregar sua área.');
+        if (active) {
+          setTasksLoading(false);
+          setNotice(error.message || 'Não foi possível carregar sua área.');
+        }
       } finally {
         if (active) setLoading(false);
       }
