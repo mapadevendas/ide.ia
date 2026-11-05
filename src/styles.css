@@ -215,3 +215,11 @@ td a { white-space: nowrap; }
 .registration-confirmation .whatsapp-group-link { width: 100%; justify-content: center; text-decoration: none; }
 .registration-confirmation .privacy-note { font-size: 13px; }
 @media (max-width: 560px) { .registration-confirmation { padding: 22px; } }
+
+.admin-maps-section{margin-top:34px;padding-top:25px;border-top:1px solid var(--border)}
+.admin-maps-section h2{margin-top:7px;font-size:25px}
+.admin-map-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.admin-map-card{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px;border:1px solid var(--border);border-radius:13px;background:var(--panel)}
+.admin-map-card strong,.admin-map-card small{display:block}
+.admin-map-card small{margin-top:5px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+@media(max-width:600px){.admin-map-card{align-items:flex-start;flex-direction:column}}

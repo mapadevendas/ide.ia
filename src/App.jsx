@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import ParticipantArea from './ParticipantArea.jsx';
 import { createClient } from '@supabase/supabase-js';
 import { LockKeyhole, Sparkles, Users, Search, LogOut, Download, CheckCircle2, ArrowRight, MessageCircle, RefreshCw } from 'lucide-react';
 
@@ -57,6 +58,7 @@ export default function App() {
   const [noticeType, setNoticeType] = useState('warning');
   const [session, setSession] = useState(null);
   const [adminRows, setAdminRows] = useState([]);
+  const [adminMaps, setAdminMaps] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [adminLoading, setAdminLoading] = useState(false);
@@ -173,6 +175,9 @@ export default function App() {
       setAdminRows(data || []);
       setNotice('');
     }
+    const { data: mapsData, error: mapsError } = await supabase.from('ideia_mindmaps').select('*').order('updated_at', { ascending: false });
+    if (mapsError) { console.warn('Não foi possível carregar mapas I.D.E.ia:', mapsError); setAdminMaps([]); }
+    else setAdminMaps(mapsData || []);
     setAdminLoading(false);
   }
 
@@ -200,6 +205,10 @@ export default function App() {
     const searchable = [row.nome, row.whatsapp, row.email, row.perfil].join(' ').toLowerCase();
     return searchable.includes(search.toLowerCase()) && (statusFilter === 'todos' || row.status === statusFilter);
   }), [adminRows, search, statusFilter]);
+
+  if (location.pathname.replace(/\/$/, '') === '/participante') {
+    return <ParticipantArea />;
+  }
 
   return <div className="app-shell">
     <header className="topbar">
@@ -277,6 +286,10 @@ export default function App() {
           <td><select className="status-select" value={row.status || 'nova'} onChange={event => changeStatus(row.id, event.target.value)}>{statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></td>
           <td><button className="mini-btn" onClick={() => window.open(`https://wa.me/55${String(row.whatsapp || '').replace(/\D/g, '').replace(/^55/, '')}`, '_blank', 'noopener')}>WhatsApp</button><button className="mini-btn secondary" onClick={() => alert(`Objetivo: ${row.objetivo || '—'}\nFerramentas: ${row.ferramentas_utilizadas || '—'}\nInvestimento: ${row.investimento_mensal || '—'}`)}>Ver respostas</button></td>
         </tr>)}</tbody></table></div>}
+        <section className="admin-maps-section">
+          <div className="crm-head"><div><span className="section-kicker">ACOMPANHAMENTO I.D.E.ia</span><h2>Mapas mentais dos participantes</h2><p>Visualização administrativa dos diagnósticos e planos individuais.</p></div></div>
+          {adminMaps.length === 0 ? <div className="empty-state"><LockKeyhole size={28}/><p>Nenhum mapa mental criado ainda.</p></div> : <div className="admin-map-grid">{adminMaps.map(item => <article className="admin-map-card" key={item.id}><div><strong>{item.title || "Meu Plano I.D.E.ia"}</strong><small>{item.user_id}</small><small>Atualizado em {new Date(item.updated_at).toLocaleString("pt-BR")}</small></div><button className="mini-btn secondary" onClick={() => alert(JSON.stringify({respostas:item.answers, mapa:item.mindmap}, null, 2))}>Ver diagnóstico e mapa</button></article>)}</div>}
+        </section>
         <p className="admin-hint">Fluxo: Nova inscrição → Contato realizado → Confirmada → Convite enviado.</p>
       </section>}
     </main>}
