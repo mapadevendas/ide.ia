@@ -712,8 +712,8 @@ export default function App() {
           </div>
         </section>
         <section className="admin-maps-section">
-          <div className="crm-head"><div><span className="section-kicker">ACOMPANHAMENTO I.D.E.ia</span><h2>Mapas mentais dos participantes</h2><p>Visualização administrativa dos diagnósticos e planos individuais.</p></div></div>
-          {adminMaps.length === 0 ? <div className="empty-state"><LockKeyhole size={28}/><p>Nenhum mapa mental criado ainda. Os participantes autorizados aparecerão aqui depois de preencher e salvar o diagnóstico.</p></div> : <div className="admin-map-grid">{adminMaps.map(item => <article className="admin-map-card" key={item.id}><div><strong>{item.participant_name || item.title || 'Participante'}</strong><small>{item.participant_email || 'Cadastro vinculado pelo usuário autenticado'}</small><small>{item.participant_whatsapp || item.user_id}</small><small>Atualizado em {new Date(item.updated_at).toLocaleString('pt-BR')}</small></div><button className="mini-btn secondary" onClick={() => setSelectedAdminMap(item)}>Abrir diagnóstico e mapa</button></article>)}</div>}
+          <div className="crm-head"><div><span className="section-kicker">RESPOSTAS DO DIAGNÓSTICO</span><h2>Diagnósticos dos participantes</h2><p>As respostas são insumos para seu planejamento. O mapa mental só será criado depois que você definir o resumo e as ações da aula.</p></div></div>
+          {adminMaps.length === 0 ? <div className="empty-state"><LockKeyhole size={28}/><p>Nenhum diagnóstico salvo ainda. Os participantes aparecerão aqui depois de responder ao questionário.</p></div> : <div className="admin-map-grid">{adminMaps.map(item => <article className="admin-map-card" key={item.id}><div><strong>{item.participant_name || item.title || 'Participante'}</strong><small>{item.participant_email || 'Cadastro vinculado pelo usuário autenticado'}</small><small>{item.participant_whatsapp || item.user_id}</small><small>Atualizado em {new Date(item.updated_at).toLocaleString('pt-BR')}</small></div><button className="mini-btn secondary" onClick={() => setSelectedAdminMap(item)}>Abrir diagnóstico</button></article>)}</div>}
         </section>
         <p className="admin-hint">Fluxo: Nova inscrição → Contato realizado → Confirmada → Convite enviado.</p>
       </section>}
@@ -733,7 +733,7 @@ export default function App() {
     </div>}
 
     {selectedAdminMap && <div className="admin-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setSelectedAdminMap(null); }}>
-      <section className="admin-diagnosis-modal" role="dialog" aria-modal="true" aria-label="Diagnóstico e mapa do participante">
+      <section className="admin-diagnosis-modal" role="dialog" aria-modal="true" aria-label="Diagnóstico individual do participante">
         <header>
           <div><span className="section-kicker">DIAGNÓSTICO INDIVIDUAL I.D.E.ia</span><h2>{selectedAdminMap.participant_name || 'Participante da Sala Secreta'}</h2>
             <p>{selectedAdminMap.participant_email || selectedAdminMap.user_id}{selectedAdminMap.participant_whatsapp ? ' · ' + selectedAdminMap.participant_whatsapp : ''}</p>
@@ -753,15 +753,7 @@ export default function App() {
             return <article key={key}><strong>{label}</strong><p>{Array.isArray(value)?value.join(' · '):(value||'Não informado')}</p></article>;
           })}
         </div>
-        <h3>Mapa mental salvo pelo participante</h3>
-        <div className="admin-participant-mindmap">
-          <div className="admin-participant-mindmap-root">PLANO I.D.E.ia</div>
-          <div className="admin-participant-mindmap-branches">
-            {(selectedAdminMap.mindmap||[]).map(node=><section className={'admin-participant-branch '+node.id} key={node.id}>
-              <strong>{node.title}</strong>{(node.items||[]).map((item,index)=><div className="admin-participant-node" key={index}>{item}</div>)}
-            </section>)}
-          </div>
-        </div>
+        <div className="participant-map-notice"><strong>Mapa mental da aula</strong><p>Ele não é gerado a partir deste questionário. Depois de responder ao resumo da aula e definir as ações de Identifica, Direciona e Expande, a tutora poderá disponibilizar o mapa para a turma.</p></div>
         <footer>
           <button className="ghost-btn" onClick={() => exportExcel([mapToExportRow(selectedAdminMap)], 'diagnostico-' + String(selectedAdminMap.participant_name || 'participante').toLowerCase().replace(/[^a-z0-9]+/g,'-') + '.csv')}><FileSpreadsheet size={16}/> Excel do diagnóstico</button>
           <button className="ghost-btn" onClick={() => requestPrint({type:'diagnosis',rows:[mapToExportRow(selectedAdminMap)],map:selectedAdminMap})}><FileText size={16}/> PDF do diagnóstico</button>
@@ -780,7 +772,7 @@ export default function App() {
         <section><h2>{printReport.map.participant_name || 'Participante da Sala Secreta'}</h2><p>{printReport.map.participant_email || ''}</p>
           <h3>Respostas do diagnóstico</h3>
           <table><tbody>{[['Área','area'],['Objetivo','goal'],['Experiência com IA','level'],['Ferramentas','tools'],['Tarefas','tasks'],['Presença digital','social'],['Processos','systems'],['Primeiro resultado','first']].map(([label,key])=><tr key={key}><th>{label}</th><td>{Array.isArray(printReport.map.answers?.[key])?printReport.map.answers[key].join(' · '):(printReport.map.answers?.[key]||'—')}</td></tr>)}</tbody></table>
-          <h3>Mapa I.D.E.ia</h3>{(printReport.map.mindmap||[]).map(node=><article key={node.id}><h3>{node.title}</h3><ul>{(node.items||[]).map((item,index)=><li key={index}>{item}</li>)}</ul></article>)}
+          <p>O mapa mental da aula será gerado pela tutora após definir o planejamento e as ações.</p>
         </section>
       </div> : printReport.type === 'individual' ? <div className="print-individual">
         {printReport.rows.map(row => <section key={row.id}><h2>{row.nome}</h2><p>{row.email} · {row.whatsapp}</p><table><tbody>{exportColumns.map(([label,key]) => <tr key={key}><th>{label}</th><td>{getExportValue(row,key) || '—'}</td></tr>)}</tbody></table></section>)}
