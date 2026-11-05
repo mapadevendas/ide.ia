@@ -366,3 +366,72 @@
   #mapa .pa-mindmap-child{min-height:52px;box-shadow:none;font-size:8pt}
   #mapa .pa-mindmap-caption{position:absolute;bottom:7px}
 }
+
+
+/* Kanban individual do participante: ações derivadas do diagnóstico */
+.pa-personal-kanban{scroll-margin-top:22px}
+.pa-kanban-total{display:grid;grid-template-columns:30px auto;align-items:center;gap:0 8px;min-width:105px;padding:12px 15px;border:1px solid #eadcf1;border-radius:14px;background:#fbf7fe;color:#65278a}
+.pa-kanban-total svg{grid-row:span 2}
+.pa-kanban-total strong{font-size:22px;line-height:1}
+.pa-kanban-total span{font-size:10px;color:#806b8b}
+.pa-task-form{margin:22px 0 18px;padding:17px;border:1px solid #e9dcef;border-radius:15px;background:linear-gradient(145deg,#fcf9fe,#f7f0fb)}
+.pa-task-form-main{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pa-task-form label{display:grid;gap:6px;color:#4c315a;font-size:11px;font-weight:800;text-align:left}
+.pa-task-form input,.pa-task-form select{width:100%;min-width:0;min-height:42px;padding:10px 12px;border:1px solid #ddcce7;border-radius:9px;background:#fff;color:#382745;font:inherit;font-size:12px;outline:none}
+.pa-task-form input:focus,.pa-task-form select:focus{border-color:#9a55bc;box-shadow:0 0 0 3px rgba(154,85,188,.12)}
+.pa-task-form-options{display:grid;grid-template-columns:minmax(130px,.65fr) minmax(140px,.65fr) auto;align-items:end;gap:12px;margin-top:12px}
+.pa-task-form-options>button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:0 18px;border:0;border-radius:9px;background:linear-gradient(100deg,#70249a,#a43ac1);color:#fff;font-size:12px;font-weight:800;cursor:pointer}
+.pa-task-form-options>button:disabled{opacity:.55;cursor:not-allowed}
+.pa-personal-kanban-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:13px}
+.pa-task-column{min-width:0;min-height:250px;padding:12px;border:1px solid #e7dceB;border-radius:14px;background:#faf7fc;transition:background .15s,border-color .15s}
+.pa-task-column.todo{border-top:4px solid #d4a44d}
+.pa-task-column.doing{border-top:4px solid #8c63be}
+.pa-task-column.done{border-top:4px solid #4caa75}
+.pa-task-column[ondrop]{}
+.pa-task-column:has(.pa-task-card[draggable="true"]):hover{background:#f4edf9}
+.pa-task-column>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 2px 11px;border-bottom:1px solid #eadff0}
+.pa-task-column>header>div{display:grid;gap:3px}
+.pa-task-column>header strong{color:#392348;font-size:13px}
+.pa-task-column>header small{color:#85748d;font-size:10px}
+.pa-task-column>header>b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#eee4f4;color:#603078;font-size:11px}
+.pa-task-column.todo>header>b{background:#fbefd8;color:#916318}
+.pa-task-column.doing>header>b{background:#eee5f8;color:#684093}
+.pa-task-column.done>header>b{background:#e3f3e9;color:#267449}
+.pa-task-cards{display:grid;gap:10px;padding-top:10px}
+.pa-task-card{min-width:0;padding:12px;border:1px solid #e5d8eb;border-radius:12px;background:#fff;box-shadow:0 4px 12px rgba(69,38,82,.055);cursor:grab}
+.pa-task-card:active{cursor:grabbing}
+.pa-task-card.is-dragging{opacity:.4;transform:scale(.98)}
+.pa-task-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pa-task-card-top>button{display:grid;place-items:center;width:26px;height:26px;border:0;border-radius:7px;background:#fff4f5;color:#b34a63;cursor:pointer}
+.pa-task-priority{display:inline-flex;padding:4px 7px;border-radius:20px;background:#f0eaf5;color:#725182;font-size:9px;font-weight:800}
+.pa-task-priority.alta{background:#fff0e9;color:#b44c2b}
+.pa-task-priority.baixa{background:#eaf5ed;color:#378052}
+.pa-task-card h3{display:flex;align-items:flex-start;gap:5px;margin:9px 0 6px;color:#392348;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.pa-task-card h3 svg{flex:none;margin-top:1px;color:#b5a2c0}
+.pa-task-card>p{margin:0;color:#74647d;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.pa-task-due{display:flex;align-items:center;gap:5px;margin-top:9px;color:#76647f;font-size:10px}
+.pa-task-move{display:grid;gap:5px;margin-top:11px;color:#776480;font-size:10px;font-weight:800}
+.pa-task-move select{width:100%;min-height:34px;padding:6px 8px;border:1px solid #e5d9eb;border-radius:8px;background:#fcfaff;color:#563d65;font-size:10px}
+.pa-task-empty{display:grid;place-items:center;min-height:86px;padding:12px;border:1px dashed #dfd2e7;border-radius:10px;color:#a08fa9;font-size:10px;text-align:center}
+.pa-task-loading{padding:28px;text-align:center;color:#796888;font-size:12px}
+.pa-kanban-footnote{margin:13px 0 0;color:#82738b;font-size:10px;line-height:1.5}
+.pa-side nav a[href="#tarefas"]{position:relative}
+@media(max-width:900px){
+  .pa-personal-kanban-columns{grid-template-columns:1fr;gap:12px}
+  .pa-task-column{min-height:145px}
+  .pa-task-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pa-task-empty{min-height:70px}
+}
+@media(max-width:600px){
+  .pa-task-form-main,.pa-task-form-options{grid-template-columns:1fr}
+  .pa-task-form-options>button{width:100%}
+  .pa-task-cards{grid-template-columns:1fr}
+  .pa-kanban-total{min-width:85px;padding:9px}
+  .pa-kanban-total strong{font-size:18px}
+}
+@media print{
+  .pa-task-form,.pa-task-card-top>button,.pa-task-move,.pa-kanban-total{display:none!important}
+  .pa-personal-kanban-columns{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .pa-task-column{break-inside:avoid;background:#fff!important}
+  .pa-task-card{box-shadow:none!important;break-inside:avoid}
+}
