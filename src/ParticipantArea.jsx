@@ -23,11 +23,7 @@ const qs = [
 ];
 
 const blank = Object.fromEntries(qs.map(q => [q.key, q.multi ? [] : '']));
-const makeMap = answers => [
-  { id: 'i', title: 'I · IDENTIFICA', items: [(answers.tasks || []).join(', ') || 'Mapear tarefas que consomem tempo', answers.systems || 'Identificar processos a melhorar', answers.area || 'Definir área prioritária'] },
-  { id: 'd', title: 'D · DIRECIONA', items: [answers.tools || 'Selecionar ferramentas de IA', answers.level || 'Definir próximo nível de uso', answers.social || 'Planejar aplicação na rotina'] },
-  { id: 'e', title: 'E · EXPANDE', items: [answers.goal || 'Definir resultado esperado', answers.first || 'Escolher primeira aplicação', 'Medir ganhos de tempo e produtividade'] }
-];
+
 const showAnswer = value => Array.isArray(value) ? value.join(' • ') : (value || 'Não informado');
 
 export default function ParticipantArea() {
@@ -120,9 +116,13 @@ export default function ParticipantArea() {
           .select('*')
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: false });
-        if (taskError) throw new Error(`Falha ao carregar seu Kanban: ${taskError.message}`);
         if (!active) return;
-        setTasks(taskRows || []);
+        if (taskError) {
+          console.warn('Kanban pessoal indisponível; pode faltar a migração:', taskError);
+          setTasks([]);
+        } else {
+          setTasks(taskRows || []);
+        }
         setTasksLoading(false);
 
         const { data: publishedPlan, error: classPlanError } = await db
