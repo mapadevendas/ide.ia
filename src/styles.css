@@ -520,3 +520,8 @@ td a { white-space: nowrap; }
   .class-map-empty{display:none!important}
   .class-map-output .idea-map-canvas{break-inside:avoid}
 }
+
+
+.participant-map-notice{margin:18px 0;padding:15px 17px;border:1px dashed #7d6590;border-radius:12px;background:rgba(255,255,255,.025)}
+.participant-map-notice strong{display:block;color:#e7cefa;font-size:13px}
+.participant-map-notice p{margin:6px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
