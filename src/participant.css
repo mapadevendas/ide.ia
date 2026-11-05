@@ -3,3 +3,39 @@
 /* Alinhamento das alternativas do diagnóstico */
 .pa-options label{display:grid;grid-template-columns:18px minmax(0,1fr);align-items:start;justify-content:start;gap:12px;text-align:left;line-height:1.5;font-size:14px;}
 .pa-options label input{display:block;width:18px!important;min-width:18px;max-width:18px;height:18px;margin:2px 0 0;padding:0;justify-self:start;align-self:start;flex:none;accent-color:#76299e;}
+
+
+/* Navegação, revisão do diagnóstico e ações do mapa */
+.pa-diagnosis{scroll-margin-top:22px;margin-bottom:20px}
+.pa-diagnosis h2{margin:10px 0 18px}
+.pa-answer-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pa-answer-list article{padding:14px 15px;border:1px solid #e8dced;border-radius:12px;background:#fdfbfe;min-width:0}
+.pa-answer-list strong{display:block;color:#51276d;font-size:13px;line-height:1.4}
+.pa-answer-list p{margin:7px 0 0;color:#57465f;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.pa-diagnosis-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.pa-diagnosis-head small{color:#8b39b2;font-size:11px;font-weight:800;letter-spacing:.13em}
+.pa-map-tools{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.pa-map-tools button{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 12px;border:1px solid #e5d5ee;border-radius:9px;background:#f4edf8;color:#5d267c;font-weight:700;cursor:pointer}
+.pa-map-tools button:disabled{opacity:.55;cursor:wait}
+.pa-node-edit{display:grid;grid-template-columns:minmax(0,1fr) 30px;align-items:center;gap:5px}
+.pa-node-edit input{min-width:0}
+.pa-save-footer{padding-top:14px;border-top:1px solid #eee5f2}
+.pa-side nav a.disabled{opacity:.65}
+#mapa{scroll-margin-top:22px}
+@media(max-width:700px){.pa-answer-list{grid-template-columns:1fr}.pa-map-tools{justify-content:flex-start;margin-top:14px}.pa-map-tools button{font-size:12px;padding:8px 10px}}
+@page{size:A4 landscape;margin:12mm}
+@media print{
+  html,body{background:#fff!important}
+  body *{visibility:hidden!important}
+  .pa-shell,.pa-main,#mapa,#mapa *{visibility:visible!important}
+  .pa-side,.pa-hero,.pa-steps,#quiz,.pa-upsell,.pa-notice{display:none!important}
+  .pa-shell{display:block!important;min-height:0!important;background:#fff!important}
+  .pa-main{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+  #mapa{position:absolute!important;left:0!important;top:0!important;width:100%!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important}
+  #mapa .pa-maphead button,#mapa .pa-actions{display:none!important}
+  #mapa .pa-maphead h2{font-size:22pt!important;color:#291638!important}
+  #mapa .pa-map{padding:14px!important;background:#fff!important;break-inside:avoid}
+  #mapa .pa-center,#mapa .pa-branch{break-inside:avoid;box-shadow:none!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #mapa .pa-branches{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+  #mapa .pa-branch{border:1px solid #d9c9e2!important}
+}
