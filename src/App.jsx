@@ -16,6 +16,19 @@ const emptyForm = {
   consentimento: false
 };
 
+const emptyClassPlanForm = {
+  title: 'Aula I.D.E.ia',
+  summary: '',
+  objective: '',
+  identify_actions: '',
+  direct_actions: '',
+  expand_actions: '',
+  tools: 'ChatGPT\nClaude\nLovable',
+  deliverables: ''
+};
+
+const toLines = value => String(value || '').split(/\\r?\\n/).map(item => item.trim()).filter(Boolean);
+
 const questions = [
   { name: 'nome', label: 'Nome completo', required: true, placeholder: 'Seu nome e sobrenome' },
   { name: 'email', label: 'E-mail', type: 'email', required: true, placeholder: 'voce@exemplo.com' },
@@ -151,6 +164,9 @@ export default function App() {
   const [adminRows, setAdminRows] = useState([]);
   const [adminMaps, setAdminMaps] = useState([]);
   const [trainingTasks, setTrainingTasks] = useState([]);
+  const [classPlan, setClassPlan] = useState(null);
+  const [classPlanForm, setClassPlanForm] = useState(emptyClassPlanForm);
+  const [classPlanBusy, setClassPlanBusy] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedAdminMap, setSelectedAdminMap] = useState(null);
   const [draggingTaskId, setDraggingTaskId] = useState(null);
@@ -296,16 +312,133 @@ export default function App() {
     }
     if (mapsError) { console.warn('Não foi possível carregar mapas I.D.E.ia:', mapsError); setAdminMaps([]); }
     else setAdminMaps(mapsData || []);
-    const initialNeeds = buildTrainingMap(data || [], mapsData || []).needs;
-    if (initialNeeds.length) {
-      const seedRows = initialNeeds.map(need => ({ need_key:need.key, title:need.title, summary:`${need.count} inscrição(ões) relacionadas`, action:need.action, tool:need.tool, prompt:need.prompt }));
-      const { error: seedError } = await supabase.from('ideia_training_tasks').upsert(seedRows, { onConflict:'need_key', ignoreDuplicates:true });
-      if (seedError) console.warn('Não foi possível iniciar o quadro de necessidades:', seedError);
+    const { data: planData, error: planError } = await supabase.from('ideia_class_plans').select('*').eq('id', 1).maybeSingle();
+    if (planError) {
+      console.warn('Resumo da aula ainda não configurado:', planError);
+      setClassPlan(null);
+      setClassPlanForm(emptyClassPlanForm);
+    } else if (planData) {
+      setClassPlan(planData);
+      setClassPlanForm({
+        title: planData.title || 'Aula I.D.E.ia',
+        summary: planData.summary || '',
+        objective: planData.objective || '',
+        identify_actions: (planData.identify_actions || []).join('\\n'),
+        direct_actions: (planData.direct_actions || []).join('\\n'),
+        expand_actions: (planData.expand_actions || []).join('\\n'),
+        tools: (planData.tools || []).join('\\n'),
+        deliverables: (planData.deliverables || []).join('\\n')
+      });
+    } else {
+      setClassPlan(null);
+      setClassPlanForm(emptyClassPlanForm);
     }
     const { data: tasksData, error: tasksError } = await supabase.from('ideia_training_tasks').select('*').order('created_at', { ascending:true });
     if (tasksError) { console.warn('Quadro de necessidades indisponível:', tasksError); setTrainingTasks([]); }
     else setTrainingTasks(tasksData || []);
     setAdminLoading(false);
+  }
+
+  function buildTutorMindmap(form = classPlanForm) {
+    const stages = [
+      { id:'i', title:'I · IDENTIFICA', subtitle:'Necessidades e preparação', items:toLines(form.identify_actions) },
+      { id:'d', title:'D · DIRECIONA', subtitle:'Ferramentas e execução', items:toLines(form.direct_actions) },
+      { id:'e', title:'E · EXPANDE', subtitle:'Aplicação e resultados', items:toLines(form.expand_actions) }
+    ];
+    return stages.map(stage => ({ id:stage.id, title:stage.title, subtitle:stage.subtitle, items:stage.items }));
+  }
+
+  async function saveClassSummary() {
+    if (!supabase) return;
+    if (!classPlanForm.summary.trim() || !classPlanForm.objective.trim()) {
+      showNotice('Preencha o resumo de como será a aula e o objetivo prático antes de salvar.');
+      return;
+    }
+    setClassPlanBusy(true);
+    const payload = {
+      id:1,
+      title:classPlanForm.title.trim() || 'Aula I.D.E.ia',
+      summary:classPlanForm.summary.trim(),
+      objective:classPlanForm.objective.trim(),
+      identify_actions:toLines(classPlanForm.identify_actions),
+      direct_actions:toLines(classPlanForm.direct_actions),
+      expand_actions:toLines(classPlanForm.expand_actions),
+      tools:toLines(classPlanForm.tools),
+      deliverables:toLines(classPlanForm.deliverables),
+      mindmap:[],
+      is_published:false,
+      updated_by:session?.user?.id || null,
+      updated_at:new Date().toISOString()
+    };
+    const {data,error}=await supabase.from('ideia_class_plans').upsert(payload,{onConflict:'id'}).select('*').single();
+    setClassPlanBusy(false);
+    if(error){console.error('Falha ao salvar resumo da aula:',error);showNotice('Não foi possível salvar o resumo da aula. Confira a migração ideia_class_plans no Supabase.');return;}
+    setClassPlan(data);
+    showNotice('Resumo da aula salvo. O mapa mental ainda não foi gerado.','success');
+  }
+
+  async function generateTutorMindmap() {
+    if (!supabase) return;
+    if (!classPlanForm.summary.trim() || !classPlanForm.objective.trim()) {
+      showNotice('Responda primeiro o resumo de como será sua aula e o objetivo prático.');
+      return;
+    }
+    const mindmap=buildTutorMindmap();
+    if(mindmap.some(node=>node.items.length===0)){
+      showNotice('Inclua pelo menos uma ação concreta em Identifica, Direciona e Expande. As respostas do diagnóstico não são ações.');
+      return;
+    }
+    setClassPlanBusy(true);
+    const payload={
+      id:1,
+      title:classPlanForm.title.trim()||'Aula I.D.E.ia',
+      summary:classPlanForm.summary.trim(),
+      objective:classPlanForm.objective.trim(),
+      identify_actions:toLines(classPlanForm.identify_actions),
+      direct_actions:toLines(classPlanForm.direct_actions),
+      expand_actions:toLines(classPlanForm.expand_actions),
+      tools:toLines(classPlanForm.tools),
+      deliverables:toLines(classPlanForm.deliverables),
+      mindmap,
+      is_published:false,
+      updated_by:session?.user?.id||null,
+      updated_at:new Date().toISOString()
+    };
+    const {data,error}=await supabase.from('ideia_class_plans').upsert(payload,{onConflict:'id'}).select('*').single();
+    if(error){
+      setClassPlanBusy(false);
+      console.error('Falha ao gerar mapa do plano de aula:',error);
+      showNotice('Não foi possível gerar o mapa. Verifique se a migração do plano da aula foi executada no Supabase.');
+      return;
+    }
+    const toolText=toLines(classPlanForm.tools).join(', ')||'ChatGPT ou Claude';
+    const taskRows=mindmap.flatMap(node=>node.items.map((action,index)=>({
+      need_key:\`class-\${node.id}-\${index+1}\`,
+      title:action,
+      summary:classPlanForm.summary.trim(),
+      action,
+      tool:toolText,
+      prompt:\`Atue como especialista em IA aplicada. Ajude a executar esta ação da aula I.D.E.ia: "\${action}". Objetivo da aula: \${classPlanForm.objective.trim()}. Sugira etapas práticas, um exemplo e como verificar o resultado.\`
+    })));
+    const {error:seedError}=await supabase.from('ideia_training_tasks').upsert(taskRows,{onConflict:'need_key'});
+    if(seedError) console.warn('Mapa criado, mas o Kanban administrativo não foi atualizado:',seedError);
+    const {data:tasksData,error:tasksError}=await supabase.from('ideia_training_tasks').select('*').order('created_at',{ascending:true});
+    if(!tasksError)setTrainingTasks(tasksData||[]);
+    setClassPlan(data);
+    setClassPlanBusy(false);
+    showNotice('Mapa mental da aula gerado a partir das ações que você definiu.','success');
+  }
+
+  async function publishTutorMindmap() {
+    if (!supabase || !classPlan?.mindmap?.length) return;
+    setClassPlanBusy(true);
+    const {data,error}=await supabase.from('ideia_class_plans')
+      .update({is_published:true,updated_at:new Date().toISOString(),updated_by:session?.user?.id||null})
+      .eq('id',1).select('*').single();
+    setClassPlanBusy(false);
+    if(error){showNotice('Não foi possível disponibilizar o mapa aos participantes. Confira a política de publicação no Supabase.');return;}
+    setClassPlan(data);
+    showNotice('Mapa da aula disponibilizado na área dos participantes.','success');
   }
 
   async function changeStatus(id, status) {
@@ -417,6 +550,11 @@ export default function App() {
     return searchable.includes(search.toLowerCase()) && (statusFilter === 'todos' || row.status === statusFilter);
   }), [adminRows, search, statusFilter]);
   const trainingMap = useMemo(() => buildTrainingMap(filtered, adminMaps), [filtered, adminMaps]);
+  const lessonMapNodes = classPlan?.mindmap || [];
+  const lessonActions = lessonMapNodes.flatMap(node => (node.items || []).map((action,index) => ({
+    need_key:`class-${node.id}-${index+1}`, stage:node.title, action, nodeId:node.id
+  })));
+  const lessonTools = classPlan?.tools || [];
 
   if (location.pathname.replace(/\/$/, '') === '/participante') {
     return <ParticipantArea />;
