@@ -5,7 +5,7 @@ import { LockKeyhole, Sparkles, Users, Search, LogOut, Download, CheckCircle2, A
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'suporteapp9@gmail.com').toLowerCase().trim();
+const adminEmail = 'suporteapp9@gmail.com'; // Deve corresponder às políticas RLS administrativas do Supabase.
 const CAPACITY = 10;
 const TABLE = 'inscricoes_sala_secreta';
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
@@ -47,10 +47,10 @@ const exportColumns = [
 ];
 
 function buildTrainingMap(rows) {
-  const textOf = row => [row.objetivo, row.experiencia_ia, row.ferramentas_utilizadas, row.site, row.perfil].filter(Boolean).join(' ').toLocaleLowerCase('pt-BR');
+  const textOf = row => [row.objetivo, row.experiencia_ia, row.ferramentas_utilizadas, row.perfil].filter(Boolean).join(' ').toLocaleLowerCase('pt-BR');
   const groups = [
     { key:'produtividade', title:'Organização e produtividade', re:/tempo|rotina|agenda|prioridade|organiza|repetitiv|produt|tarefa|agilidade/i, tool:'ChatGPT ou Claude', action:'Mapear uma rotina, dividir em etapas e criar um assistente de priorização.', prompt:'Atue como consultor de produtividade. Faça perguntas para mapear minha rotina, identifique tarefas repetitivas e proponha um fluxo mais simples com IA. Entregue etapas, prompt reutilizável e indicador de tempo economizado.' },
-    { key:'conteudo', title:'Conteúdo e presença digital', re:/conte[uú]do|rede social|instagram|post|marketing|arte|copy|marca|site/i, tool:'ChatGPT ou Claude + Canva/Gemini', action:'Criar calendário editorial, modelos de conteúdo e fluxo de aprovação.', prompt:'Atue como estrategista de conteúdo. Com base no meu público, objetivo e canais, crie um calendário de 30 dias, modelos de legenda, briefing de arte e um processo simples de revisão e publicação.' },
+    { key:'conteudo', title:'Conteúdo e presença digital', re:/conte[uú]do|rede social|instagram|post|marketing|arte|copy|marca/i, tool:'ChatGPT ou Claude + Canva/Gemini', action:'Criar calendário editorial, modelos de conteúdo e fluxo de aprovação.', prompt:'Atue como estrategista de conteúdo. Com base no meu público, objetivo e canais, crie um calendário de 30 dias, modelos de legenda, briefing de arte e um processo simples de revisão e publicação.' },
     { key:'atendimento', title:'Atendimento, relacionamento e vendas', re:/atendimento|cliente|venda|lead|whatsapp|prospec|comercial|mensagem|aus[eê]ncia/i, tool:'ChatGPT ou Claude; Lovable para prototipar CRM', action:'Padronizar triagem, respostas, follow-up e acompanhamento de oportunidades.', prompt:'Atue como especialista em atendimento e vendas. Desenhe um fluxo de triagem, respostas-padrão, follow-up e registro de oportunidades. Inclua mensagens para WhatsApp, critérios de prioridade e indicadores de conversão.' },
     { key:'processos', title:'Processos e automação', re:/processo|automat|planilha|relat[oó]rio|sistema|crm|fluxo|financeiro|integra/i, tool:'Claude ou ChatGPT para especificar; Lovable para construir', action:'Escolher um processo, desenhar o fluxo e construir um pequeno app ou painel.', prompt:'Atue como analista de processos e product owner. Documente o processo atual, identifique gargalos, desenhe o fluxo futuro e escreva uma especificação para um app interno no Lovable, incluindo telas, campos, regras e critérios de aceite.' },
     { key:'dados', title:'Análise de dados e decisões', re:/an[aá]lise|dados|indicador|relat[oó]rio|decis|m[eé]trica|planilha/i, tool:'ChatGPT ou Claude + planilha; Lovable para painel', action:'Definir indicadores, organizar uma base e criar rotina de leitura dos resultados.', prompt:'Atue como analista de negócios. Ajude a definir os indicadores mais úteis, a estrutura de uma planilha e uma rotina semanal de análise. Explique como transformar os dados em decisões e ações.' }
@@ -128,6 +128,8 @@ export default function App() {
 
   function update(name, value) { setForm(current => ({ ...current, [name]: value })); }
   function showNotice(message, type = 'warning') { setNotice(message); setNoticeType(type); }
+
+  function requestPrint(report) { setPrintReport(report); }
 
   async function submit(event) {
     event.preventDefault();
