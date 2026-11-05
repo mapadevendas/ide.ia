@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
   LockKeyhole, ArrowRight, ChevronLeft, ChevronRight, Plus, Trash2,
-  Download, Printer, LogOut, Sparkles, Pencil, Save, X
+  Download, Printer, LogOut, Sparkles, Pencil, Save, X, ListTodo, CalendarDays, GripVertical
 } from 'lucide-react';
 import './participant.css';
 
@@ -43,6 +43,14 @@ export default function ParticipantArea() {
   const [edit, setEdit] = useState(false);
   const [revisingDiagnosis, setRevisingDiagnosis] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
+  const [taskPriority, setTaskPriority] = useState('media');
+  const [taskDueDate, setTaskDueDate] = useState('');
+  const [taskBusy, setTaskBusy] = useState(false);
+  const [draggingTaskId, setDraggingTaskId] = useState(null);
 
   useEffect(() => {
     if (!db) {
@@ -104,6 +112,17 @@ export default function ParticipantArea() {
           setMap(null);
           setSavedMap(null);
         }
+
+        setTasksLoading(true);
+        const { data: taskRows, error: taskError } = await db
+          .from('ideia_participant_tasks')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+        if (taskError) throw new Error(`Falha ao carregar seu Kanban: ${taskError.message}`);
+        if (!active) return;
+        setTasks(taskRows || []);
+        setTasksLoading(false);
       } catch (error) {
         if (active) setNotice(error.message || 'Não foi possível carregar sua área.');
       } finally {
@@ -112,6 +131,76 @@ export default function ParticipantArea() {
     })();
     return () => { active = false; };
   }, [session]);
+
+  async function createTask(event) {
+    event.preventDefault();
+    const title = taskTitle.trim();
+    if (!title || !db || !session) return;
+    setTaskBusy(true);
+    setNotice('');
+    try {
+      const { data, error } = await db.from('ideia_participant_tasks').insert({
+        user_id: session.user.id,
+        title,
+        description: taskDescription.trim(),
+        priority: taskPriority,
+        due_date: taskDueDate || null,
+        status: 'para_fazer'
+      }).select('*').single();
+      if (error) throw error;
+      setTasks(current => [data, ...current]);
+      setTaskTitle('');
+      setTaskDescription('');
+      setTaskPriority('media');
+      setTaskDueDate('');
+      setNotice('Tarefa adicionada ao seu Kanban.');
+    } catch (error) {
+      console.error('Falha ao criar tarefa:', error);
+      setNotice(\`Não foi possível adicionar a tarefa: \${error.message || 'erro inesperado'}\`);
+    } finally {
+      setTaskBusy(false);
+    }
+  }
+
+  async function moveTask(task, status) {
+    if (!db || !session || task.status === status) return;
+    const previous = tasks;
+    setTasks(current => current.map(item => item.id === task.id ? { ...item, status } : item));
+    const { data, error } = await db.from('ideia_participant_tasks')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', task.id)
+      .eq('user_id', session.user.id)
+      .select('*')
+      .single();
+    if (error) {
+      setTasks(previous);
+      setNotice(\`Não foi possível mover a tarefa: \${error.message}\`);
+      return;
+    }
+    setTasks(current => current.map(item => item.id === task.id ? data : item));
+  }
+
+  async function removeTask(task) {
+    if (!db || !session) return;
+    if (!window.confirm(\`Excluir a tarefa "\${task.title}"?\`)) return;
+    const previous = tasks;
+    setTasks(current => current.filter(item => item.id !== task.id));
+    const { error } = await db.from('ideia_participant_tasks').delete()
+      .eq('id', task.id).eq('user_id', session.user.id);
+    if (error) {
+      setTasks(previous);
+      setNotice(\`Não foi possível excluir a tarefa: \${error.message}\`);
+      return;
+    }
+    setNotice('Tarefa excluída.');
+  }
+
+  function onTaskDrop(event, status) {
+    event.preventDefault();
+    const task = tasks.find(item => item.id === draggingTaskId);
+    if (task) moveTask(task, status);
+    setDraggingTaskId(null);
+  }
 
   async function send(event) {
     event.preventDefault();
@@ -379,6 +468,7 @@ export default function ParticipantArea() {
           <a href="#inicio">⌂ Meu Espaço</a>
           <a className={canStartQuiz ? 'active' : ''} href="#quiz">▤ Diagnóstico</a>
           <a className={map ? '' : 'disabled'} href={map ? '#mapa' : '#quiz'}>⌘ Meu Mapa Mental</a>
+          <a href="#tarefas">☷ Minhas tarefas</a>
         </nav>
         <button className="pa-logout" onClick={() => db.auth.signOut()}><LogOut size={16} /> Sair</button>
       </aside>
@@ -481,6 +571,88 @@ export default function ParticipantArea() {
               </div>
               <p className="pa-mindmap-caption">As respostas do diagnóstico se conectam à ideia central e se dividem em Identifica, Direciona e Expande. Edite os nós para construir seu plano.</p>
             </div>            {edit && <div className="pa-actions pa-save-footer"><span>As alterações ainda não foram salvas.</span><button onClick={toggleMapEdit} disabled={busy}>{busy ? 'Salvando...' : 'Salvar alterações'}</button></div>}
+          </section>
+        )}
+
+        {map && (
+          <section className="pa-card pa-personal-kanban" id="tarefas">
+            <div className="pa-maphead">
+              <div>
+                <small>ETAPA 3 · AÇÃO</small>
+                <h2>Meu Kanban de tarefas</h2>
+                <p>Transforme seu diagnóstico em pequenas ações. Organize o que precisa fazer e acompanhe seu progresso.</p>
+              </div>
+              <div className="pa-kanban-total"><ListTodo size={20}/><strong>{tasks.length}</strong><span>tarefas</span></div>
+            </div>
+
+            <form className="pa-task-form" onSubmit={createTask}>
+              <div className="pa-task-form-main">
+                <label>O que você precisa fazer?
+                  <input value={taskTitle} onChange={event=>setTaskTitle(event.target.value)} placeholder="Ex.: Criar calendário de conteúdo com IA" maxLength={120} required />
+                </label>
+                <label>Detalhes (opcional)
+                  <input value={taskDescription} onChange={event=>setTaskDescription(event.target.value)} placeholder="Descreva a próxima ação ou o resultado esperado" maxLength={400} />
+                </label>
+              </div>
+              <div className="pa-task-form-options">
+                <label>Prioridade
+                  <select value={taskPriority} onChange={event=>setTaskPriority(event.target.value)}>
+                    <option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option>
+                  </select>
+                </label>
+                <label>Prazo
+                  <input type="date" value={taskDueDate} onChange={event=>setTaskDueDate(event.target.value)} />
+                </label>
+                <button type="submit" disabled={taskBusy || !taskTitle.trim()}><Plus size={16}/>{taskBusy?'Adicionando...':'Adicionar tarefa'}</button>
+              </div>
+            </form>
+
+            {tasksLoading ? <div className="pa-task-loading">Carregando suas tarefas...</div> : (
+              <div className="pa-personal-kanban-columns">
+                {[
+                  {id:'para_fazer',title:'Para fazer',tone:'todo',hint:'Planeje a próxima ação'},
+                  {id:'em_andamento',title:'Em andamento',tone:'doing',hint:'O que você está executando'},
+                  {id:'feito',title:'Feito',tone:'done',hint:'Conquistas concluídas'}
+                ].map(column=>{
+                  const columnTasks=tasks.filter(task=>task.status===column.id);
+                  return (
+                    <section className={'pa-task-column '+column.tone} key={column.id}
+                      onDragOver={event=>event.preventDefault()}
+                      onDrop={event=>onTaskDrop(event,column.id)}>
+                      <header>
+                        <div><strong>{column.title}</strong><small>{column.hint}</small></div>
+                        <b>{columnTasks.length}</b>
+                      </header>
+                      <div className="pa-task-cards">
+                        {columnTasks.map(task=>(
+                          <article className={'pa-task-card '+(draggingTaskId===task.id?'is-dragging':'')} key={task.id}
+                            draggable
+                            onDragStart={()=>setDraggingTaskId(task.id)}
+                            onDragEnd={()=>setDraggingTaskId(null)}>
+                            <div className="pa-task-card-top">
+                              <span className={'pa-task-priority '+task.priority}>{task.priority==='alta'?'Prioridade alta':task.priority==='baixa'?'Prioridade baixa':'Prioridade média'}</span>
+                              <button type="button" onClick={()=>removeTask(task)} aria-label={'Excluir tarefa '+task.title}><Trash2 size={14}/></button>
+                            </div>
+                            <h3><GripVertical size={14}/>{task.title}</h3>
+                            {task.description&&<p>{task.description}</p>}
+                            {task.due_date&&<small className="pa-task-due"><CalendarDays size={13}/> Prazo: {new Date(task.due_date+'T12:00:00').toLocaleDateString('pt-BR')}</small>}
+                            <label className="pa-task-move">Mover para
+                              <select value={task.status} onChange={event=>moveTask(task,event.target.value)}>
+                                <option value="para_fazer">Para fazer</option>
+                                <option value="em_andamento">Em andamento</option>
+                                <option value="feito">Feito</option>
+                              </select>
+                            </label>
+                          </article>
+                        ))}
+                        {columnTasks.length===0&&<div className="pa-task-empty">Nenhuma tarefa aqui ainda.</div>}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            )}
+            <p className="pa-kanban-footnote">Este quadro é particular: somente você visualiza e organiza suas tarefas. Arraste os cartões ou use o campo “Mover para”.</p>
           </section>
         )}
 
