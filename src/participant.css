@@ -39,3 +39,184 @@
   #mapa .pa-branches{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
   #mapa .pa-branch{border:1px solid #d9c9e2!important}
 }
+
+
+/* Mapa mental ramificado I.D.E.ia: núcleo central, ramos e nós */
+.pa-mindmap{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  min-height:700px;
+  padding:34px 24px 28px;
+  border:1px solid #eee4f4;
+  border-radius:22px;
+  background:
+    radial-gradient(ellipse at 50% 5%,rgba(134,72,178,.15),transparent 42%),
+    radial-gradient(ellipse at 12% 70%,rgba(131,78,196,.08),transparent 30%),
+    radial-gradient(ellipse at 88% 70%,rgba(38,152,99,.08),transparent 30%),
+    #fbf8fd;
+}
+.pa-mindmap-root{
+  position:relative;
+  z-index:3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:4px;
+  width:min(300px,90%);
+  min-height:88px;
+  margin:0 auto 100px;
+  padding:14px 24px;
+  border:2px solid #d9b4ee;
+  border-radius:50%;
+  background:linear-gradient(135deg,#321044 0%,#71249a 100%);
+  color:#fff;
+  text-align:center;
+  box-shadow:0 12px 32px rgba(83,35,111,.22),0 0 0 8px rgba(128,64,166,.07);
+}
+.pa-mindmap-root>span{color:#f3c978;font-size:9px;font-weight:900;letter-spacing:.18em}
+.pa-mindmap-root>strong{font-size:19px;line-height:1.2}
+.pa-mindmap-root>small{color:#e9d9f1;font-size:10px;line-height:1.3}
+.pa-mindmap-lines{
+  position:absolute;
+  z-index:1;
+  top:0;
+  left:0;
+  width:100%;
+  height:265px;
+  overflow:visible;
+  pointer-events:none;
+}
+.pa-mindmap-lines path{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+.pa-mindmap-lines .line-root-i{stroke:#8d4db8}
+.pa-mindmap-lines .line-root-d{stroke:#d39a35}
+.pa-mindmap-lines .line-root-e{stroke:#3e9a68}
+.pa-mindmap-lines .line-i-child{stroke:#b58aca;stroke-width:2;opacity:.65}
+.pa-mindmap-lines .line-d-child{stroke:#d7b46e;stroke-width:2;opacity:.65}
+.pa-mindmap-lines .line-e-child{stroke:#7dbb96;stroke-width:2;opacity:.65}
+.pa-mindmap-groups{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:22px;
+  align-items:start;
+}
+.pa-mindmap-group{
+  position:relative;
+  display:flex;
+  align-items:center;
+  flex-direction:column;
+  min-width:0;
+  padding:0 4px;
+}
+.pa-mindmap-branch{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  width:min(100%,290px);
+  min-height:67px;
+  padding:12px 17px;
+  border:2px solid transparent;
+  border-radius:999px;
+  text-align:center;
+  box-shadow:0 9px 22px rgba(51,28,65,.12);
+}
+.pa-mindmap-branch>span{
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:27px;
+  height:27px;
+  border-radius:50%;
+  background:rgba(255,255,255,.55);
+  font-size:10px;
+  font-weight:900;
+}
+.pa-mindmap-branch>strong{font-size:15px;line-height:1.3}
+.pa-mindmap-group.i .pa-mindmap-branch{border-color:#bf95da;background:linear-gradient(135deg,#f0e3f8,#e6d1f2);color:#68328a}
+.pa-mindmap-group.d .pa-mindmap-branch{border-color:#e5c27b;background:linear-gradient(135deg,#fff3d9,#fbe7ba);color:#95620f}
+.pa-mindmap-group.e .pa-mindmap-branch{border-color:#8fc8a5;background:linear-gradient(135deg,#e2f5e8,#ccebd8);color:#267548}
+.pa-mindmap-children{
+  position:relative;
+  display:grid;
+  justify-items:center;
+  align-content:start;
+  gap:22px;
+  width:100%;
+  padding:48px 0 0;
+}
+.pa-mindmap-children:before{
+  position:absolute;
+  top:0;
+  bottom:28px;
+  left:50%;
+  width:2px;
+  content:"";
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,#c6a3d8,#dfd2e8);
+  opacity:.8;
+}
+.pa-mindmap-group.d .pa-mindmap-children:before{background:linear-gradient(180deg,#dfc17f,#f0e0bc)}
+.pa-mindmap-group.e .pa-mindmap-children:before{background:linear-gradient(180deg,#92c5a4,#d2e9d9)}
+.pa-mindmap-child{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:9px;
+  width:min(100%,270px);
+  min-height:58px;
+  padding:11px 15px;
+  border:1px solid #d9c7e4;
+  border-radius:999px;
+  background:#fff;
+  color:#4e3b59;
+  box-shadow:0 5px 14px rgba(65,39,77,.07);
+  font-size:12px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+.pa-mindmap-group.i .pa-mindmap-child{border-color:#dec9e9;background:#fffaff}
+.pa-mindmap-group.d .pa-mindmap-child{border-color:#efdbb0;background:#fffdf7}
+.pa-mindmap-group.e .pa-mindmap-child{border-color:#c9e5d2;background:#fafffb}
+.pa-child-dot{
+  flex:none;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#8b4ab0;
+  box-shadow:0 0 0 4px #f0e3f8;
+}
+.pa-mindmap-group.d .pa-child-dot{background:#cc962f;box-shadow:0 0 0 4px #fbefd5}
+.pa-mindmap-group.e .pa-child-dot{background:#3c9a64;box-shadow:0 0 0 4px #e2f2e7}
+.pa-mindmap-child-text{flex:1;min-width:0}
+.pa-mindmap-child .pa-node-edit{width:100%;display:grid;grid-template-columns:minmax(0,1fr) 28px;gap:4px}
+.pa-mindmap-child .pa-node-edit input{min-width:0;padding:7px 8px;border:1px solid #e2d5eb;border-radius:8px;background:#fff;font-size:11px}
+.pa-mindmap-child .pa-delete{display:grid;place-items:center;border:0;background:transparent;color:#a54a69;cursor:pointer}
+.pa-mindmap-group .pa-add{position:relative;z-index:3;display:flex;align-items:center;gap:5px;margin-top:15px;padding:7px 10px;border:1px dashed #c6a6d8;border-radius:20px;background:#fff;color:#78299e;font-size:11px;font-weight:800}
+.pa-mindmap-caption{position:relative;z-index:2;margin:28px 0 0;color:#7d6b87;font-size:11px;text-align:center;line-height:1.5}
+@media(max-width:900px){
+  .pa-mindmap{min-height:0;padding:28px 16px}
+  .pa-mindmap-root{margin-bottom:56px}
+  .pa-mindmap-lines{display:none}
+  .pa-mindmap-groups{grid-template-columns:1fr;gap:30px}
+  .pa-mindmap-group{padding:0 8px}
+  .pa-mindmap-branch{width:min(100%,360px)}
+  .pa-mindmap-children{width:min(100%,540px);padding-top:25px;gap:13px}
+  .pa-mindmap-children:before{bottom:25px}
+  .pa-mindmap-child{width:min(100%,440px);min-height:52px}
+}
+@media print{
+  #mapa .pa-mindmap{min-height:0;overflow:visible;padding:18px;background:#fff!important}
+  #mapa .pa-mindmap-root{margin-bottom:80px;box-shadow:none}
+  #mapa .pa-mindmap-lines{display:block!important;height:245px}
+  #mapa .pa-mindmap-groups{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px}
+  #mapa .pa-mindmap-branch{min-height:55px;box-shadow:none}
+  #mapa .pa-mindmap-children{gap:12px;padding-top:32px}
+  #mapa .pa-mindmap-child{min-height:48px;box-shadow:none;font-size:9pt}
+}
