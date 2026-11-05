@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import ParticipantArea from './ParticipantArea.jsx';
 import { createClient } from '@supabase/supabase-js';
 import { LockKeyhole, Sparkles, Users, Search, LogOut, Download, CheckCircle2, ArrowRight, MessageCircle, RefreshCw } from 'lucide-react';
 
@@ -201,7 +202,7 @@ export default function App() {
     return searchable.includes(search.toLowerCase()) && (statusFilter === 'todos' || row.status === statusFilter);
   }), [adminRows, search, statusFilter]);
 
-  return <div className="app-shell">
+  if (location.pathname.replace(/\\/$/, '') === '/participante') return <ParticipantArea />;\n\n  return <div className="app-shell">
     <header className="topbar">
       <a className="brand" href="#" onClick={event => { event.preventDefault(); setPage('home'); location.hash = ''; }} aria-label="Sala Secreta I.D.E.ia">
         <img className="brand-logo" src="/cardume-logo.jpg" alt="Cardume" />
