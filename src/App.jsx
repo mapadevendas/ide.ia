@@ -27,7 +27,7 @@ const emptyClassPlanForm = {
   deliverables: ''
 };
 
-const toLines = value => String(value || '').split(/\\r?\\n/).map(item => item.trim()).filter(Boolean);
+const toLines = value => String(value || '').split(String.fromCharCode(10)).map(item => item.replace(/\r/g, '').trim()).filter(Boolean);
 
 const questions = [
   { name: 'nome', label: 'Nome completo', required: true, placeholder: 'Seu nome e sobrenome' },
@@ -323,11 +323,11 @@ export default function App() {
         title: planData.title || 'Aula I.D.E.ia',
         summary: planData.summary || '',
         objective: planData.objective || '',
-        identify_actions: (planData.identify_actions || []).join('\\n'),
-        direct_actions: (planData.direct_actions || []).join('\\n'),
-        expand_actions: (planData.expand_actions || []).join('\\n'),
-        tools: (planData.tools || []).join('\\n'),
-        deliverables: (planData.deliverables || []).join('\\n')
+        identify_actions: (planData.identify_actions || []).join(String.fromCharCode(10)),
+        direct_actions: (planData.direct_actions || []).join(String.fromCharCode(10)),
+        expand_actions: (planData.expand_actions || []).join(String.fromCharCode(10)),
+        tools: (planData.tools || []).join(String.fromCharCode(10)),
+        deliverables: (planData.deliverables || []).join(String.fromCharCode(10))
       });
     } else {
       setClassPlan(null);
