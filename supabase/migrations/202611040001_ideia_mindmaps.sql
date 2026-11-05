@@ -1,6 +1,6 @@
 create table if not exists public.ideia_mindmaps (
  id uuid primary key default gen_random_uuid(),
- user_id uuid not null references auth.users(id) on delete cascade,
+ user_id uuid not null unique references auth.users(id) on delete cascade,
  title text not null default 'Meu Plano I.D.E.ia',
  answers jsonb not null default '{}'::jsonb,
  mindmap jsonb not null default '[]'::jsonb,
@@ -8,7 +8,7 @@ create table if not exists public.ideia_mindmaps (
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now()
 );
-create unique index if not exists ideia_mindmaps_one_free_per_user on public.ideia_mindmaps(user_id) where is_free;
+
 alter table public.ideia_mindmaps enable row level security;
 grant select,insert,update,delete on public.ideia_mindmaps to authenticated;
 create or replace function public.can_access_ideia_workspace()
