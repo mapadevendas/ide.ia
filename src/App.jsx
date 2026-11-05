@@ -148,6 +148,8 @@ export default function App() {
   const [adminMaps, setAdminMaps] = useState([]);
   const [trainingTasks, setTrainingTasks] = useState([]);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedAdminMap, setSelectedAdminMap] = useState(null);
+  const [draggingTaskId, setDraggingTaskId] = useState(null);
   const [deleteBusyId, setDeleteBusyId] = useState(null);
   const [printReport, setPrintReport] = useState(null);
   const [copyNotice, setCopyNotice] = useState('');
@@ -277,10 +279,20 @@ export default function App() {
       setAdminRows(data || []);
       setNotice('');
     }
-    const { data: mapsData, error: mapsError } = await supabase.from('ideia_mindmaps').select('*').order('updated_at', { ascending: false });
+    let mapsData = null;
+    let mapsError = null;
+    const adminMapsResult = await supabase.rpc('get_ideia_admin_maps');
+    if (!adminMapsResult.error) {
+      mapsData = adminMapsResult.data || [];
+    } else {
+      console.warn('RPC administrativa de mapas ainda indisponível; usando consulta compatível:', adminMapsResult.error);
+      const fallback = await supabase.from('ideia_mindmaps').select('*').order('updated_at', { ascending: false });
+      mapsData = fallback.data;
+      mapsError = fallback.error;
+    }
     if (mapsError) { console.warn('Não foi possível carregar mapas I.D.E.ia:', mapsError); setAdminMaps([]); }
     else setAdminMaps(mapsData || []);
-    const initialNeeds = buildTrainingMap(data || []).needs;
+    const initialNeeds = buildTrainingMap(data || [], mapsData || []).needs;
     if (initialNeeds.length) {
       const seedRows = initialNeeds.map(need => ({ need_key:need.key, title:need.title, summary:`${need.count} inscrição(ões) relacionadas`, action:need.action, tool:need.tool, prompt:need.prompt }));
       const { error: seedError } = await supabase.from('ideia_training_tasks').upsert(seedRows, { onConflict:'need_key', ignoreDuplicates:true });
@@ -370,7 +382,7 @@ export default function App() {
     const searchable = [row.nome, row.whatsapp, row.email, row.perfil, row.objetivo, row.ferramentas_utilizadas].join(' ').toLowerCase();
     return searchable.includes(search.toLowerCase()) && (statusFilter === 'todos' || row.status === statusFilter);
   }), [adminRows, search, statusFilter]);
-  const trainingMap = useMemo(() => buildTrainingMap(filtered), [filtered]);
+  const trainingMap = useMemo(() => buildTrainingMap(filtered, adminMaps), [filtered, adminMaps]);
 
   if (location.pathname.replace(/\/$/, '') === '/participante') {
     return <ParticipantArea />;
