@@ -413,12 +413,12 @@ export default function App() {
     }
     const toolText=toLines(classPlanForm.tools).join(', ')||'ChatGPT ou Claude';
     const taskRows=mindmap.flatMap(node=>node.items.map((action,index)=>({
-      need_key:\`class-\${node.id}-\${index+1}\`,
+      need_key:`class-${node.id}-${index+1}`,
       title:action,
       summary:classPlanForm.summary.trim(),
       action,
       tool:toolText,
-      prompt:\`Atue como especialista em IA aplicada. Ajude a executar esta ação da aula I.D.E.ia: "\${action}". Objetivo da aula: \${classPlanForm.objective.trim()}. Sugira etapas práticas, um exemplo e como verificar o resultado.\`
+      prompt:`Atue como especialista em IA aplicada. Ajude a executar esta ação da aula I.D.E.ia: "${action}". Objetivo da aula: ${classPlanForm.objective.trim()}. Sugira etapas práticas, um exemplo e como verificar o resultado.`
     })));
     const {error:seedError}=await supabase.from('ideia_training_tasks').upsert(taskRows,{onConflict:'need_key'});
     if(seedError) console.warn('Mapa criado, mas o Kanban administrativo não foi atualizado:',seedError);
@@ -662,13 +662,13 @@ export default function App() {
               <label>Resumo: como será a aula?<textarea rows={4} value={classPlanForm.summary} onChange={event=>setClassPlanForm(current=>({...current,summary:event.target.value}))} placeholder="Descreva a sequência da aula, o que será explicado, demonstrado e praticado."/></label>
               <label>Qual será o resultado prático para o participante?<textarea rows={2} value={classPlanForm.objective} onChange={event=>setClassPlanForm(current=>({...current,objective:event.target.value}))} placeholder="Ao final da aula, o participante será capaz de..."/></label>
               <div className="class-plan-stage-grid">
-                <label className="stage-i">IDENTIFICA · O que você vai fazer na aula?<textarea rows={5} value={classPlanForm.identify_actions} onChange={event=>setClassPlanForm(current=>({...current,identify_actions:event.target.value}))} placeholder={'Uma ação por linha. Ex.:\\nMapear uma tarefa repetitiva\\nIdentificar o gargalo do processo\\nDefinir o problema prioritário'}/></label>
-                <label className="stage-d">DIRECIONA · O que você vai ensinar ou construir?<textarea rows={5} value={classPlanForm.direct_actions} onChange={event=>setClassPlanForm(current=>({...current,direct_actions:event.target.value}))} placeholder={'Uma ação por linha. Ex.:\\nCriar um prompt de trabalho\\nConfigurar um assistente no ChatGPT\\nPrototipar um fluxo no Lovable'}/></label>
-                <label className="stage-e">EXPANDE · Como será a aplicação?<textarea rows={5} value={classPlanForm.expand_actions} onChange={event=>setClassPlanForm(current=>({...current,expand_actions:event.target.value}))} placeholder={'Uma ação por linha. Ex.:\\nAplicar a solução durante sete dias\\nMedir tempo economizado\\nAjustar e documentar o processo'}/></label>
+                <label className="stage-i">IDENTIFICA · O que você vai fazer na aula?<textarea rows={5} value={classPlanForm.identify_actions} onChange={event=>setClassPlanForm(current=>({...current,identify_actions:event.target.value}))} placeholder={'Uma ação por linha. Exemplos: mapear uma tarefa repetitiva; identificar gargalos; definir prioridade.'}/></label>
+                <label className="stage-d">DIRECIONA · O que você vai ensinar ou construir?<textarea rows={5} value={classPlanForm.direct_actions} onChange={event=>setClassPlanForm(current=>({...current,direct_actions:event.target.value}))} placeholder={'Uma ação por linha. Exemplos: criar prompt; configurar assistente; prototipar fluxo no Lovable.'}/></label>
+                <label className="stage-e">EXPANDE · Como será a aplicação?<textarea rows={5} value={classPlanForm.expand_actions} onChange={event=>setClassPlanForm(current=>({...current,expand_actions:event.target.value}))} placeholder={'Uma ação por linha. Exemplos: aplicar solução; medir ganhos; ajustar processo.'}/></label>
               </div>
               <div className="class-plan-support-grid">
-                <label>Ferramentas que serão utilizadas<textarea rows={3} value={classPlanForm.tools} onChange={event=>setClassPlanForm(current=>({...current,tools:event.target.value}))} placeholder={'Uma ferramenta por linha.\\nChatGPT\\nClaude\\nLovable'}/></label>
-                <label>Entregáveis da aula<textarea rows={3} value={classPlanForm.deliverables} onChange={event=>setClassPlanForm(current=>({...current,deliverables:event.target.value}))} placeholder={'Uma entrega por linha.\\nPrompt pronto\\nFluxo de trabalho\\nPlano de aplicação'}/></label>
+                <label>Ferramentas que serão utilizadas<textarea rows={3} value={classPlanForm.tools} onChange={event=>setClassPlanForm(current=>({...current,tools:event.target.value}))} placeholder={'Uma ferramenta por linha. Exemplos: ChatGPT; Claude; Lovable.'}/></label>
+                <label>Entregáveis da aula<textarea rows={3} value={classPlanForm.deliverables} onChange={event=>setClassPlanForm(current=>({...current,deliverables:event.target.value}))} placeholder={'Uma entrega por linha. Exemplos: prompt pronto; fluxo de trabalho; plano de aplicação.'}/></label>
               </div>
             </div>
             <div className="class-plan-controls">
