@@ -51,7 +51,7 @@ const exportColumns = [
 ];
 
 function buildTrainingMap(rows, participantMaps = []) {
-  const maps = participantMaps || [];
+  const maps = (participantMaps || []).filter(item => item.participant_email);
   const mapEmails = new Set(maps.map(item => (item.participant_email || '').toLowerCase()).filter(Boolean));
   const people = [
     ...maps.map(item => ({ answers: item.answers || {}, registration: rows.find(row => row.email?.toLowerCase() === item.participant_email?.toLowerCase()) || null })),
