@@ -206,7 +206,11 @@ export default function App() {
     return searchable.includes(search.toLowerCase()) && (statusFilter === 'todos' || row.status === statusFilter);
   }), [adminRows, search, statusFilter]);
 
-  if (location.pathname.replace(/\\/$/, '') === '/participante') return <ParticipantArea />;\n\n  return <div className="app-shell">
+  if (location.pathname.replace(/\/$/, '') === '/participante') {
+    return <ParticipantArea />;
+  }
+
+  return <div className="app-shell">
     <header className="topbar">
       <a className="brand" href="#" onClick={event => { event.preventDefault(); setPage('home'); location.hash = ''; }} aria-label="Sala Secreta I.D.E.ia">
         <img className="brand-logo" src="/cardume-logo.jpg" alt="Cardume" />
