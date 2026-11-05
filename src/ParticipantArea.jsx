@@ -438,20 +438,17 @@ export default function ParticipantArea() {
             </div>
             <div className="pa-map pa-mindmap">
               <div className="pa-mindmap-root">
-                <span>MAPA DE IDEIAS</span>
-                <strong>Meu Plano I.D.E.ia</strong>
-                <small>Seu diagnóstico transformado em caminhos de ação</small>
+                <span>IDEIA CENTRAL</span>
+                <strong>Meu Plano<br />I.D.E.ia</strong>
               </div>
-
-              <svg className="pa-mindmap-lines" viewBox="0 0 1000 570" preserveAspectRatio="none" aria-hidden="true">
-                <path className="line-root-i" d="M500 105 C500 145 170 118 170 190" />
-                <path className="line-root-d" d="M500 105 L500 190" />
-                <path className="line-root-e" d="M500 105 C500 145 830 118 830 190" />
-                <path className="line-i-child" d="M170 230 C170 270 170 285 170 320 M170 375 L170 405 M170 460 L170 490" />
-                <path className="line-d-child" d="M500 230 C500 270 500 285 500 320 M500 375 L500 405 M500 460 L500 490" />
-                <path className="line-e-child" d="M830 230 C830 270 830 285 830 320 M830 375 L830 405 M830 460 L830 490" />
+              <svg className="pa-mindmap-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+                <path className="line-root-i" d="M500 350 C430 350 400 350 320 350" />
+                <path className="line-root-d" d="M500 350 C570 300 610 190 685 180" />
+                <path className="line-root-e" d="M500 350 C570 410 610 510 685 520" />
+                <path className="line-i-child" d="M320 350 C250 350 220 230 120 230 M320 350 L120 350 M320 350 C250 350 220 470 120 470" />
+                <path className="line-d-child" d="M685 180 C760 180 785 100 875 100 M685 180 L875 180 M685 180 C760 180 785 260 875 260" />
+                <path className="line-e-child" d="M685 520 C760 520 785 420 875 420 M685 520 L875 520 M685 520 C760 520 785 620 875 620" />
               </svg>
-
               <div className="pa-mindmap-groups">
                 {nodes.map(node => (
                   <section key={node.id} className={'pa-mindmap-group ' + node.id}>
@@ -482,9 +479,8 @@ export default function ParticipantArea() {
                   </section>
                 ))}
               </div>
-              <p className="pa-mindmap-caption">Cada ramificação organiza uma parte do seu plano. As ideias vêm das respostas do diagnóstico e podem ser editadas por você.</p>
-            </div>
-            {edit && <div className="pa-actions pa-save-footer"><span>As alterações ainda não foram salvas.</span><button onClick={toggleMapEdit} disabled={busy}>{busy ? 'Salvando...' : 'Salvar alterações'}</button></div>}
+              <p className="pa-mindmap-caption">As respostas do diagnóstico se conectam à ideia central e se dividem em Identifica, Direciona e Expande. Edite os nós para construir seu plano.</p>
+            </div>            {edit && <div className="pa-actions pa-save-footer"><span>As alterações ainda não foram salvas.</span><button onClick={toggleMapEdit} disabled={busy}>{busy ? 'Salvando...' : 'Salvar alterações'}</button></div>}
           </section>
         )}
 
