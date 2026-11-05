@@ -18,6 +18,7 @@ create index if not exists ideia_participant_tasks_user_status_idx
 
 alter table public.ideia_participant_tasks enable row level security;
 
+revoke all on table public.ideia_participant_tasks from anon, authenticated;
 grant select,insert,update,delete on public.ideia_participant_tasks to authenticated;
 
 drop policy if exists ideia_participant_tasks_select_owner on public.ideia_participant_tasks;
