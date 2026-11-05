@@ -10,7 +10,7 @@ create table if not exists public.ideia_mindmaps (
 );
 
 alter table public.ideia_mindmaps enable row level security;
-grant select,insert,update,delete on public.ideia_mindmaps to authenticated;
+grant select,insert,update on public.ideia_mindmaps to authenticated;
 create or replace function public.can_access_ideia_workspace()
 returns boolean language sql stable security definer set search_path=public as $$
  select auth.uid() is not null and (
