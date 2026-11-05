@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import ParticipantArea from './ParticipantArea.jsx';
 import { createClient } from '@supabase/supabase-js';
-import { LockKeyhole, Sparkles, Users, Search, LogOut, Download, CheckCircle2, ArrowRight, MessageCircle, RefreshCw } from 'lucide-react';
+import { LockKeyhole, Sparkles, Users, Search, LogOut, Download, CheckCircle2, ArrowRight, MessageCircle, RefreshCw, FileText, FileSpreadsheet, Trash2, X, Lightbulb, ClipboardCopy, Printer, Network, Workflow } from 'lucide-react';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -38,6 +38,37 @@ const statusOptions = [
 ];
 const statusLabel = value => statusOptions.find(item => item.value === value)?.label || value || 'Nova inscrição';
 
+const exportColumns = [
+  ['Nome', 'nome'], ['E-mail', 'email'], ['WhatsApp', 'whatsapp'],
+  ['Perfil profissional', 'perfil'], ['Experiência com IA', 'experiencia_ia'],
+  ['Ferramentas utilizadas', 'ferramentas_utilizadas'], ['Site / presença digital', 'site'],
+  ['Objetivo / necessidade', 'objetivo'], ['Investimento mensal', 'investimento_mensal'],
+  ['Status', 'status'], ['Convite enviado', 'convite_enviado'], ['Data de inscrição', 'created_at']
+];
+
+function buildTrainingMap(rows) {
+  const textOf = row => [row.objetivo, row.experiencia_ia, row.ferramentas_utilizadas, row.site, row.perfil].filter(Boolean).join(' ').toLocaleLowerCase('pt-BR');
+  const groups = [
+    { key:'produtividade', title:'Organização e produtividade', re:/tempo|rotina|agenda|prioridade|organiza|repetitiv|produt|tarefa|agilidade/i, tool:'ChatGPT ou Claude', action:'Mapear uma rotina, dividir em etapas e criar um assistente de priorização.', prompt:'Atue como consultor de produtividade. Faça perguntas para mapear minha rotina, identifique tarefas repetitivas e proponha um fluxo mais simples com IA. Entregue etapas, prompt reutilizável e indicador de tempo economizado.' },
+    { key:'conteudo', title:'Conteúdo e presença digital', re:/conte[uú]do|rede social|instagram|post|marketing|arte|copy|marca|site/i, tool:'ChatGPT ou Claude + Canva/Gemini', action:'Criar calendário editorial, modelos de conteúdo e fluxo de aprovação.', prompt:'Atue como estrategista de conteúdo. Com base no meu público, objetivo e canais, crie um calendário de 30 dias, modelos de legenda, briefing de arte e um processo simples de revisão e publicação.' },
+    { key:'atendimento', title:'Atendimento, relacionamento e vendas', re:/atendimento|cliente|venda|lead|whatsapp|prospec|comercial|mensagem|aus[eê]ncia/i, tool:'ChatGPT ou Claude; Lovable para prototipar CRM', action:'Padronizar triagem, respostas, follow-up e acompanhamento de oportunidades.', prompt:'Atue como especialista em atendimento e vendas. Desenhe um fluxo de triagem, respostas-padrão, follow-up e registro de oportunidades. Inclua mensagens para WhatsApp, critérios de prioridade e indicadores de conversão.' },
+    { key:'processos', title:'Processos e automação', re:/processo|automat|planilha|relat[oó]rio|sistema|crm|fluxo|financeiro|integra/i, tool:'Claude ou ChatGPT para especificar; Lovable para construir', action:'Escolher um processo, desenhar o fluxo e construir um pequeno app ou painel.', prompt:'Atue como analista de processos e product owner. Documente o processo atual, identifique gargalos, desenhe o fluxo futuro e escreva uma especificação para um app interno no Lovable, incluindo telas, campos, regras e critérios de aceite.' },
+    { key:'dados', title:'Análise de dados e decisões', re:/an[aá]lise|dados|indicador|relat[oó]rio|decis|m[eé]trica|planilha/i, tool:'ChatGPT ou Claude + planilha; Lovable para painel', action:'Definir indicadores, organizar uma base e criar rotina de leitura dos resultados.', prompt:'Atue como analista de negócios. Ajude a definir os indicadores mais úteis, a estrutura de uma planilha e uma rotina semanal de análise. Explique como transformar os dados em decisões e ações.' }
+  ];
+  const needs=groups.map(group=>{const matches=rows.filter(row=>group.re.test(textOf(row)));return {...group,count:matches.length,examples:[...new Set(matches.map(row=>row.objetivo).filter(Boolean))].slice(0,3)};}).filter(group=>group.count>0).sort((a,b)=>b.count-a.count);
+  const countBy=field=>{const counts=new Map();rows.forEach(row=>{const value=String(row[field]||'Não informado').trim()||'Não informado';counts.set(value,(counts.get(value)||0)+1);});return [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);};
+  const lowExperience=rows.filter(row=>/ainda não uso|raramente/i.test(row.experiencia_ia||'')).length;
+  return {
+    total:rows.length,profiles:countBy('perfil'),experience:countBy('experiencia_ia'),tools:countBy('ferramentas_utilizadas'),lowExperience,needs,
+    actions:[
+      {stage:'IDENTIFICA',title:'Diagnosticar necessidades reais',detail:'Agrupar objetivos, tarefas, experiência com IA e ferramentas já utilizadas. Priorizar os temas com maior recorrência.',tool:'ChatGPT ou Claude',prompt:'Atue como facilitador do método I.D.E.ia. Analise as necessidades do grupo, organize por frequência e impacto, separe sintomas de causas e proponha perguntas de aprofundamento para a aula de Identifica.'},
+      {stage:'DIRECIONA',title:'Transformar necessidade em solução',detail:'Para cada tema prioritário, escolher uma ferramenta, desenhar o passo a passo e praticar com um caso real.',tool:'ChatGPT / Claude / Lovable',prompt:'Atue como consultor de IA aplicada. Para cada necessidade priorizada, recomende se a solução deve ser feita por conversa com ChatGPT/Claude, por automação simples ou por um pequeno aplicativo no Lovable. Entregue passo a passo, prompt inicial, dados necessários e cuidados.'},
+      {stage:'EXPANDE',title:'Aplicar, medir e ampliar',detail:'Executar um piloto, medir tempo, qualidade ou conversão e documentar o que pode ser replicado.',tool:'Lovable + planilha de indicadores',prompt:'Crie um plano de expansão de 30 dias para as soluções escolhidas. Defina responsável, rotina de uso, indicador antes/depois, meta, revisão semanal e critério para replicar a solução.'}
+    ]
+  };
+}
+
+
 function Field({ q, value, onChange }) {
   return <label className="field">
     <span>{q.label}{q.required && <b className="req"> *</b>}</span>
@@ -59,6 +90,11 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [adminRows, setAdminRows] = useState([]);
   const [adminMaps, setAdminMaps] = useState([]);
+  const [trainingTasks, setTrainingTasks] = useState([]);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [deleteBusyId, setDeleteBusyId] = useState(null);
+  const [printReport, setPrintReport] = useState(null);
+  const [copyNotice, setCopyNotice] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [adminLoading, setAdminLoading] = useState(false);
@@ -81,6 +117,14 @@ export default function App() {
   useEffect(() => {
     if (page === 'admin' && session) loadAdmin();
   }, [page, session]);
+
+  useEffect(() => {
+    if (!printReport) return;
+    const handleAfterPrint = () => setPrintReport(null);
+    window.addEventListener('afterprint', handleAfterPrint);
+    const timer = window.setTimeout(() => window.print(), 250);
+    return () => { window.clearTimeout(timer); window.removeEventListener('afterprint', handleAfterPrint); };
+  }, [printReport]);
 
   function update(name, value) { setForm(current => ({ ...current, [name]: value })); }
   function showNotice(message, type = 'warning') { setNotice(message); setNoticeType(type); }
@@ -178,6 +222,15 @@ export default function App() {
     const { data: mapsData, error: mapsError } = await supabase.from('ideia_mindmaps').select('*').order('updated_at', { ascending: false });
     if (mapsError) { console.warn('Não foi possível carregar mapas I.D.E.ia:', mapsError); setAdminMaps([]); }
     else setAdminMaps(mapsData || []);
+    const initialNeeds = buildTrainingMap(data || []).needs;
+    if (initialNeeds.length) {
+      const seedRows = initialNeeds.map(need => ({ need_key:need.key, title:need.title, summary:`${need.count} inscrição(ões) relacionadas`, action:need.action, tool:need.tool, prompt:need.prompt }));
+      const { error: seedError } = await supabase.from('ideia_training_tasks').upsert(seedRows, { onConflict:'need_key', ignoreDuplicates:true });
+      if (seedError) console.warn('Não foi possível iniciar o quadro de necessidades:', seedError);
+    }
+    const { data: tasksData, error: tasksError } = await supabase.from('ideia_training_tasks').select('*').order('created_at', { ascending:true });
+    if (tasksError) { console.warn('Quadro de necessidades indisponível:', tasksError); setTrainingTasks([]); }
+    else setTrainingTasks(tasksData || []);
     setAdminLoading(false);
   }
 
