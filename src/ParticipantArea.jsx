@@ -51,6 +51,7 @@ export default function ParticipantArea() {
   const [taskDueDate, setTaskDueDate] = useState('');
   const [taskBusy, setTaskBusy] = useState(false);
   const [draggingTaskId, setDraggingTaskId] = useState(null);
+  const [classPlan, setClassPlan] = useState(null);
 
   useEffect(() => {
     if (!db) {
@@ -123,6 +124,19 @@ export default function ParticipantArea() {
         if (!active) return;
         setTasks(taskRows || []);
         setTasksLoading(false);
+
+        const { data: publishedPlan, error: classPlanError } = await db
+          .from('ideia_class_plans')
+          .select('*')
+          .eq('id', 1)
+          .eq('is_published', true)
+          .maybeSingle();
+        if (classPlanError) {
+          console.warn('Mapa da aula ainda não publicado ou migração pendente:', classPlanError);
+          setClassPlan(null);
+        } else {
+          setClassPlan(publishedPlan || null);
+        }
       } catch (error) {
         if (active) {
           setTasksLoading(false);
@@ -163,6 +177,29 @@ export default function ParticipantArea() {
     } finally {
       setTaskBusy(false);
     }
+  }
+
+  async function addClassActionToKanban(title, stage) {
+    if (!db || !session) return;
+    if (tasks.some(task => task.title.toLowerCase() === String(title).toLowerCase())) {
+      setNotice('Essa ação já está no seu Kanban.');
+      return;
+    }
+    setTaskBusy(true);
+    const { data, error } = await db.from('ideia_participant_tasks').insert({
+      user_id: session.user.id,
+      title: String(title).slice(0,120),
+      description: 'Ação da aula · ' + stage,
+      priority: 'media',
+      status: 'para_fazer'
+    }).select('*').single();
+    setTaskBusy(false);
+    if (error) {
+      setNotice('Não foi possível adicionar a ação ao Kanban: ' + error.message);
+      return;
+    }
+    setTasks(current=>[data,...current]);
+    setNotice('Ação adicionada ao seu Kanban pessoal.');
   }
 
   async function moveTask(task, status) {
@@ -231,7 +268,7 @@ export default function ParticipantArea() {
     }
   }
 
-  async function save(nextAnswers = answers, nextNodes = map?.mindmap || makeMap(answers), successMessage = 'Mapa salvo com sucesso.') {
+  async function save(nextAnswers = answers, nextNodes = [], successMessage = 'Diagnóstico salvo com sucesso.') {
     if (!db || !session) {
       setNotice('Sua sessão expirou. Entre novamente para salvar.');
       return false;
@@ -309,11 +346,10 @@ export default function ParticipantArea() {
   }
 
   async function finishDiagnosis() {
-    const nextMap = makeMap(answers);
     const ok = await save(
       answers,
-      nextMap,
-      'Diagnóstico e mapa mental atualizados e salvos.'
+      [],
+      'Diagnóstico salvo. A tutora preparará o resumo da aula e, depois, o mapa de ações.'
     );
     if (ok) {
       setRevisingDiagnosis(false);
@@ -322,19 +358,19 @@ export default function ParticipantArea() {
   }
 
   function exportMap() {
-    if (!map) return;
-    const blob = new Blob([JSON.stringify(map, null, 2)], { type: 'application/json' });
+    if (!classPlan?.mindmap?.length) return;
+    const blob = new Blob([JSON.stringify(classPlan, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'meu-mapa-ideia.json';
+    anchor.download = 'mapa-da-aula-ideia.json';
     anchor.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   function printMap() {
-    if (!map) {
-      setNotice('Gere seu mapa mental antes de imprimir.');
+    if (!classPlan?.mindmap?.length) {
+      setNotice('O mapa da aula ainda não foi disponibilizado pela tutora.');
       return;
     }
     window.print();
@@ -399,7 +435,7 @@ export default function ParticipantArea() {
           {isLast ? (
             <button
               onClick={map ? finishDiagnosis : async () => {
-                const ok = await save(answers, makeMap(answers), 'Diagnóstico e mapa mental criados e salvos.');
+                const ok = await save(answers, [], 'Diagnóstico enviado. O mapa da aula será disponibilizado depois que a tutora preparar o planejamento.');
                 if (ok) {
                   setStep(0);
                   setEdit(false);
@@ -456,7 +492,6 @@ export default function ParticipantArea() {
     );
   }
 
-  const nodes = map?.mindmap || makeMap(answers);
   const canStartQuiz = !map || revisingDiagnosis;
   const missingAnswers = qs.some(item => {
     const value = answers[item.key];
@@ -513,67 +548,59 @@ export default function ParticipantArea() {
         </section>
 
         {map && (
-          <section className="pa-card" id="mapa">
-            <div className="pa-maphead">
-              <div>
-                <small>SEU PLANO PERSONALIZADO</small>
-                <h2>Meu Mapa Mental I.D.E.ia</h2>
-                <p>Edite os tópicos e acrescente suas próprias ideias.</p>
-              </div>
-              <div className="pa-map-tools">
-                <button className="secondary" onClick={toggleMapEdit} disabled={busy}>
-                  {edit ? <><Save size={16} /> {busy ? 'Salvando...' : 'Salvar alterações'}</> : <><Pencil size={16} /> Editar mapa</>}
-                </button>
-                {edit && <button className="secondary" onClick={cancelMapEdit} disabled={busy}><X size={16} /> Cancelar</button>}
-                <button className="secondary" onClick={exportMap} title="Baixar mapa em JSON" aria-label="Baixar mapa em JSON"><Download size={16} /></button>
-                <button className="secondary" onClick={printMap} title="Imprimir ou salvar como PDF" aria-label="Imprimir ou salvar como PDF"><Printer size={16} /></button>
-              </div>
-            </div>
-            <div className="pa-map pa-mindmap">
-              <div className="pa-mindmap-root">
-                <span>IDEIA CENTRAL</span>
-                <strong>Meu Plano<br />I.D.E.ia</strong>
-              </div>
-              <svg className="pa-mindmap-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
-                <path className="line-root-i" d="M500 350 C430 350 400 350 320 350" />
-                <path className="line-root-d" d="M500 350 C570 300 610 190 685 180" />
-                <path className="line-root-e" d="M500 350 C570 410 610 510 685 520" />
-                <path className="line-i-child" d="M320 350 C250 350 220 230 120 230 M320 350 L120 350 M320 350 C250 350 220 470 120 470" />
-                <path className="line-d-child" d="M685 180 C760 180 785 100 875 100 M685 180 L875 180 M685 180 C760 180 785 260 875 260" />
-                <path className="line-e-child" d="M685 520 C760 520 785 420 875 420 M685 520 L875 520 M685 520 C760 520 785 620 875 620" />
-              </svg>
-              <div className="pa-mindmap-groups">
-                {nodes.map(node => (
-                  <section key={node.id} className={'pa-mindmap-group ' + node.id}>
-                    <div className="pa-mindmap-branch">
-                      <span>{node.id === 'i' ? '01' : node.id === 'd' ? '02' : '03'}</span>
-                      <strong>{node.title}</strong>
-                    </div>
-                    <div className="pa-mindmap-children">
-                      {node.items.map((item, index) => (
-                        <div className="pa-mindmap-child" key={index}>
-                          <span className="pa-child-dot" />
-                          {edit ? (
-                            <div className="pa-node-edit">
-                              <input
-                                aria-label={`Editar ideia ${index + 1} em ${node.title}`}
-                                value={item}
-                                onChange={event => changeNode(node.id, index, event.target.value)}
-                              />
-                              <button className="pa-delete" onClick={() => deleteNode(node.id, index)} aria-label="Excluir ideia">
-                                <Trash2 size={14} />
-                              </button>
+          <section className="pa-card pa-class-map" id="mapa">
+            {classPlan?.mindmap?.length ? (
+              <>
+                <div className="pa-maphead">
+                  <div>
+                    <small>MAPA MENTAL DA AULA · DISPONIBILIZADO PELA TUTORA</small>
+                    <h2>{classPlan.title || 'Mapa de ações I.D.E.ia'}</h2>
+                    <p>{classPlan.summary}</p>
+                  </div>
+                  <div className="pa-map-tools">
+                    <button className="secondary" onClick={exportMap} title="Baixar mapa" aria-label="Baixar mapa"><Download size={16}/></button>
+                    <button className="secondary" onClick={printMap} title="Imprimir ou salvar como PDF" aria-label="Imprimir mapa"><Printer size={16}/></button>
+                  </div>
+                </div>
+                <div className="pa-map pa-mindmap">
+                  <div className="pa-mindmap-root"><span>IDEIA CENTRAL</span><strong>{classPlan.title || 'Aula I.D.E.ia'}</strong></div>
+                  <svg className="pa-mindmap-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+                    <path className="line-root-i" d="M500 350 C430 350 400 350 320 350"/>
+                    <path className="line-root-d" d="M500 350 C570 300 610 190 685 180"/>
+                    <path className="line-root-e" d="M500 350 C570 410 610 510 685 520"/>
+                  </svg>
+                  <div className="pa-mindmap-groups">
+                    {classPlan.mindmap.map(node=>(
+                      <section key={node.id} className={'pa-mindmap-group '+node.id}>
+                        <div className="pa-mindmap-branch"><span>{node.id==='i'?'01':node.id==='d'?'02':'03'}</span><strong>{node.title}</strong></div>
+                        <div className="pa-mindmap-children">
+                          {(node.items||[]).map((item,index)=>(
+                            <div className="pa-mindmap-child" key={index}>
+                              <span className="pa-child-dot"/>
+                              <span className="pa-mindmap-child-text">{item}</span>
+                              <button className="pa-add-task" onClick={()=>addClassActionToKanban(item,node.title)} disabled={tasks.some(task=>task.title.toLowerCase()===String(item).toLowerCase())}>+ Kanban</button>
                             </div>
-                          ) : <span className="pa-mindmap-child-text">{item}</span>}
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                    {edit && <button className="pa-add" onClick={() => addNode(node.id)}><Plus size={14} /> Adicionar ideia</button>}
-                  </section>
-                ))}
+                      </section>
+                    ))}
+                  </div>
+                  <p className="pa-mindmap-caption">Este mapa foi criado pela tutora depois de analisar as respostas e definir as ações da aula.</p>
+                </div>
+                <div className="pa-class-plan-summary">
+                  <strong>Resultado esperado</strong><p>{classPlan.objective}</p>
+                  <strong>Ferramentas</strong><p>{(classPlan.tools||[]).join(' · ')}</p>
+                  <strong>Entregáveis</strong><p>{(classPlan.deliverables||[]).join(' · ')}</p>
+                </div>
+              </>
+            ) : (
+              <div className="pa-class-map-pending">
+                <Sparkles size={28}/>
+                <small>DIAGNÓSTICO RECEBIDO</small>
+                <h2>Seu mapa de ações está sendo preparado.</h2>
+                <p>Suas respostas ajudam a tutora a entender suas necessidades. Depois de planejar a aula e definir as ações de Identifica, Direciona e Expande, ela disponibilizará aqui o mapa mental.</p>
               </div>
-              <p className="pa-mindmap-caption">As respostas do diagnóstico se conectam à ideia central e se dividem em Identifica, Direciona e Expande. Edite os nós para construir seu plano.</p>
-            </div>            {edit && <div className="pa-actions pa-save-footer"><span>As alterações ainda não foram salvas.</span><button onClick={toggleMapEdit} disabled={busy}>{busy ? 'Salvando...' : 'Salvar alterações'}</button></div>}
+            )}
           </section>
         )}
 
@@ -583,7 +610,7 @@ export default function ParticipantArea() {
               <div>
                 <small>ETAPA 3 · AÇÃO</small>
                 <h2>Meu Kanban de tarefas</h2>
-                <p>Transforme seu diagnóstico em pequenas ações. Organize o que precisa fazer e acompanhe seu progresso.</p>
+                <p>Organize as ações da aula e suas próprias tarefas. Mova cada cartão conforme avançar.</p>
               </div>
               <div className="pa-kanban-total"><ListTodo size={20}/><strong>{tasks.length}</strong><span>tarefas</span></div>
             </div>
