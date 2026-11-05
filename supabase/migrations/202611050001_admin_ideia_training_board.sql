@@ -42,6 +42,7 @@ create table if not exists public.ideia_training_tasks (
 
 alter table public.ideia_training_tasks enable row level security;
 
+revoke all on table public.ideia_training_tasks from anon, authenticated;
 grant select, insert, update on public.ideia_training_tasks to authenticated;
 
 drop policy if exists ideia_training_tasks_admin_select on public.ideia_training_tasks;
