@@ -435,3 +435,28 @@
   .pa-task-column{break-inside:avoid;background:#fff!important}
   .pa-task-card{box-shadow:none!important;break-inside:avoid}
 }
+
+
+/* Participant: só mostra o mapa depois da publicação do plano da aula */
+.pa-class-map-pending{display:grid;justify-items:center;gap:12px;max-width:720px;margin:20px auto;padding:42px 26px;border:1px dashed #d8c2e3;border-radius:18px;background:linear-gradient(145deg,#fbf7fd,#f5edf9);text-align:center}
+.pa-class-map-pending>svg{color:#8a43a9}
+.pa-class-map-pending>small{color:#8a43a9;font-size:10px;font-weight:900;letter-spacing:.16em}
+.pa-class-map-pending>h2{margin:0;color:#3f1b50;font-size:21px}
+.pa-class-map-pending>p{max-width:540px;margin:0;color:#776881;font-size:13px;line-height:1.6}
+.pa-class-plan-summary{display:grid;grid-template-columns:125px minmax(0,1fr);gap:7px 12px;margin-top:18px;padding:16px;border:1px solid #e7d9ee;border-radius:13px;background:#fcf9fd}
+.pa-class-plan-summary strong{color:#6e318b;font-size:11px}
+.pa-class-plan-summary p{margin:0;color:#65546e;font-size:12px;line-height:1.5}
+.pa-mindmap-child{display:flex;align-items:center;gap:8px}
+.pa-mindmap-child-text{flex:1;min-width:0}
+.pa-add-task{flex:none;padding:5px 8px;border:1px solid #d5b9e3;border-radius:16px;background:#f7effb;color:#71318f;font-size:9px;font-weight:900;cursor:pointer}
+.pa-add-task:disabled{opacity:.45;cursor:default}
+@media(max-width:600px){
+  .pa-class-map-pending{padding:28px 17px}
+  .pa-class-map-pending>h2{font-size:18px}
+  .pa-class-plan-summary{grid-template-columns:1fr}
+}
+@media print{
+  .pa-add-task{display:none!important}
+  .pa-class-map-pending{display:none!important}
+  .pa-class-plan-summary{break-inside:avoid}
+}
