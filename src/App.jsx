@@ -240,24 +240,79 @@ export default function App() {
     setAdminRows(rows => rows.map(row => row.id === id ? { ...row, status, convite_enviado: status === 'convite_enviado' } : row));
   }
 
+  async function deleteRegistration(row) {
+    if (!row?.id || !supabase) return;
+    const confirmed = window.confirm(\`Excluir definitivamente o cadastro de \${row.nome || 'este participante'} (\${row.email || 'sem e-mail'})? Esta ação não pode ser desfeita.\`);
+    if (!confirmed) return;
+    setDeleteBusyId(row.id);
+    showNotice('');
+    const { data, error } = await supabase.from(TABLE).delete().eq('id', row.id).select('id').maybeSingle();
+    setDeleteBusyId(null);
+    if (error) {
+      console.error('Falha ao excluir inscrição:', error);
+      showNotice(\`Não foi possível excluir o cadastro: \${error.message}. Verifique a política DELETE administrativa no Supabase.\`);
+      return;
+    }
+    if (!data) {
+      showNotice('Nenhum cadastro foi excluído. A política de segurança pode estar bloqueando a operação.');
+      return;
+    }
+    setAdminRows(current => current.filter(item => item.id !== row.id));
+    setSelectedRow(null);
+    showNotice('Cadastro excluído com sucesso.', 'success');
+  }
+
+  function exportExcel(rows, filename) {
+    const csvRows = [
+      exportColumns.map(column => column[0]),
+      ...rows.map(row => exportColumns.map(([label, key]) => {
+        if (key === 'status') return statusLabel(row.status);
+        if (key === 'convite_enviado') return row.convite_enviado ? 'Sim' : 'Não';
+        if (key === 'created_at') return row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : '';
+        return row[key] ?? '';
+      }))
+    ];
+    const csv = csvRows.map(row => row.map(value => \`"\${String(value ?? '').replaceAll('"', '""')}"\`).join(';')).join('\\r\\n');
+    const url = URL.createObjectURL(new Blob(['\\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename.endsWith('.csv') ? filename : \`\${filename}.csv\`;
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function updateTaskStatus(task, status) {
+    const { data, error } = await supabase.from('ideia_training_tasks')
+      .update({ task_status: status, updated_at: new Date().toISOString() })
+      .eq('id', task.id).select('*').single();
+    if (error) {
+      console.error('Falha ao mover cartão do Kanban:', error);
+      showNotice(\`Não foi possível atualizar o Kanban: \${error.message}. Verifique se a migração do quadro foi executada no Supabase.\`);
+      return;
+    }
+    setTrainingTasks(current => current.map(item => item.id === task.id ? data : item));
+  }
+
+  async function copyPrompt(prompt) {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopyNotice('Prompt copiado. Cole no ChatGPT ou Claude.');
+      window.setTimeout(() => setCopyNotice(''), 3500);
+    } catch {
+      setCopyNotice('Não foi possível copiar automaticamente. Copie o texto do cartão manualmente.');
+    }
+  }
+
   async function logout() {
     await supabase?.auth.signOut();
     setPage('home'); location.hash = ''; setAdminRows([]); setNotice('');
   }
 
-  function exportCsv() {
-    const headers = ['Nome', 'E-mail', 'WhatsApp', 'Perfil', 'Experiência com IA', 'Ferramentas', 'Site', 'Objetivo', 'Investimento mensal', 'Status', 'Convite enviado', 'Data'];
-    const rows = filtered.map(row => [row.nome, row.email, row.whatsapp, row.perfil, row.experiencia_ia, row.ferramentas_utilizadas, row.site, row.objetivo, row.investimento_mensal, statusLabel(row.status), row.convite_enviado ? 'Sim' : 'Não', row.created_at]);
-    const csv = [headers, ...rows].map(row => row.map(value => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(';')).join('\r\n');
-    const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
-    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'inscricoes-sala-secreta-ide.csv'; anchor.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
   const filtered = useMemo(() => adminRows.filter(row => {
-    const searchable = [row.nome, row.whatsapp, row.email, row.perfil].join(' ').toLowerCase();
+    const searchable = [row.nome, row.whatsapp, row.email, row.perfil, row.objetivo, row.ferramentas_utilizadas].join(' ').toLowerCase();
     return searchable.includes(search.toLowerCase()) && (statusFilter === 'todos' || row.status === statusFilter);
   }), [adminRows, search, statusFilter]);
+  const trainingMap = useMemo(() => buildTrainingMap(filtered), [filtered]);
 
   if (location.pathname.replace(/\/$/, '') === '/participante') {
     return <ParticipantArea />;
