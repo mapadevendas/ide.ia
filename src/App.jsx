@@ -381,19 +381,88 @@ export default function App() {
         </div>
         {notice && <div className={`notice ${noticeType}`}>{notice}</div>}
         <div className="table-tools">
-          <label className="search-box"><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar nome, WhatsApp ou e-mail" /></label>
+          <label className="search-box"><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar nome, WhatsApp, e-mail ou necessidade" /></label>
           <select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="todos">Todos os status</option>{statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
-          <button className="ghost-btn" onClick={exportCsv}><Download size={16} /> Exportar CSV</button>
+          <button className="ghost-btn" onClick={() => exportExcel(filtered, 'sala-secreta-grupo.csv')}><FileSpreadsheet size={16} /> Excel do grupo (.csv)</button>
+          <button className="ghost-btn" onClick={() => requestPrint({ type: 'group', rows: filtered })}><FileText size={16} /> PDF do grupo</button>
+          <button className="ghost-btn" onClick={() => requestPrint({ type: 'training', rows: filtered, map: trainingMap })}><Lightbulb size={16} /> Mapa I.D.E.ia</button>
           <button className="ghost-btn" onClick={loadAdmin}><RefreshCw size={16} /> Atualizar</button>
         </div>
+        {copyNotice && <div className="notice success">{copyNotice}</div>}
         {adminLoading ? <p>Carregando inscrições...</p> : filtered.length === 0 ? <div className="empty-state"><Users size={30} /><p>Nenhuma inscrição encontrada com esses filtros.</p></div> : <div className="table-scroll"><table><thead><tr><th>Participante</th><th>Contato</th><th>Perfil e IA</th><th>Objetivo</th><th>Status</th><th>Ações</th></tr></thead><tbody>{filtered.map(row => <tr key={row.id}>
           <td><strong>{row.nome}</strong><small>{new Date(row.created_at).toLocaleString('pt-BR')}</small></td>
-          <td><a href={`https://wa.me/55${String(row.whatsapp || '').replace(/\D/g, '').replace(/^55/, '')}`} target="_blank" rel="noreferrer">{row.whatsapp}</a><small>{row.email}</small></td>
+          <td><a href={\`https://wa.me/55\${String(row.whatsapp || '').replace(/\\D/g, '').replace(/^55/, '')}\`} target="_blank" rel="noreferrer">{row.whatsapp}</a><small>{row.email}</small></td>
           <td><span>{row.perfil || '—'}</span><small>{row.experiencia_ia || '—'}</small><small>{row.ferramentas_utilizadas || ''}</small></td>
           <td><small>{row.objetivo || '—'}</small><small>Site: {row.site || '—'}</small><small>Investimento: {row.investimento_mensal || '—'}</small></td>
           <td><select className="status-select" value={row.status || 'nova'} onChange={event => changeStatus(row.id, event.target.value)}>{statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></td>
-          <td><button className="mini-btn" onClick={() => window.open(`https://wa.me/55${String(row.whatsapp || '').replace(/\D/g, '').replace(/^55/, '')}`, '_blank', 'noopener')}>WhatsApp</button><button className="mini-btn secondary" onClick={() => alert(`Objetivo: ${row.objetivo || '—'}\nFerramentas: ${row.ferramentas_utilizadas || '—'}\nInvestimento: ${row.investimento_mensal || '—'}`)}>Ver respostas</button></td>
+          <td className="admin-row-actions">
+            <button className="mini-btn secondary" onClick={() => setSelectedRow(row)}>Ver respostas</button>
+            <button className="mini-btn secondary" onClick={() => exportExcel([row], \`respostas-\${String(row.nome || 'participante').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv\`)}><FileSpreadsheet size={13}/> Excel</button>
+            <button className="mini-btn secondary" onClick={() => requestPrint({ type: 'individual', rows: [row] })}><FileText size={13}/> PDF</button>
+            <button className="mini-btn danger" disabled={deleteBusyId === row.id} onClick={() => deleteRegistration(row)}><Trash2 size={13}/> {deleteBusyId === row.id ? 'Excluindo...' : 'Excluir'}</button>
+          </td>
         </tr>)}</tbody></table></div>}
+
+        <section className="training-map-section">
+          <div className="crm-head"><div><span className="section-kicker">MAPA DE IDEIAS · A PARTIR DAS RESPOSTAS</span><h2>Mapa mental para o treinamento I.D.E.ia</h2><p>Visão do grupo com base nas {trainingMap.total} inscrições do filtro atual.</p></div></div>
+          <div className="training-map-stats">
+            <div><strong>{trainingMap.total}</strong><span>respostas analisadas</span></div>
+            <div><strong>{trainingMap.lowExperience}</strong><span>ainda não usam IA ou usam raramente</span></div>
+            <div><strong>{trainingMap.needs.length}</strong><span>frentes de necessidade encontradas</span></div>
+          </div>
+          <div className="idea-map-canvas">
+            <svg className="idea-map-lines" viewBox="0 0 1000 460" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M500 76 C500 138 170 120 170 220" />
+              <path d="M500 76 L500 220" />
+              <path d="M500 76 C500 138 830 120 830 220" />
+            </svg>
+            <div className="idea-map-root"><Network size={20}/><span>NECESSIDADES DO GRUPO</span><strong>{trainingMap.total} participantes</strong></div>
+            <div className="idea-map-branches">
+              <article className="idea-map-branch identify">
+                <span>01 · IDENTIFICA</span><h3>O que precisa melhorar?</h3>
+                <p>As dores, tarefas e oportunidades que aparecem nas respostas.</p>
+                {trainingMap.needs.map(need => <div className="idea-map-node" key={need.key}><strong>{need.title}</strong><b>{need.count} pessoa(s)</b><small>{need.examples[0] || 'Necessidade indicada no formulário.'}</small></div>)}
+              </article>
+              <article className="idea-map-branch direct">
+                <span>02 · DIRECIONA</span><h3>Qual solução ensinar?</h3>
+                <p>Transformar cada necessidade em uma prática concreta.</p>
+                {trainingMap.needs.map(need => <div className="idea-map-node" key={need.key}><strong>{need.action}</strong><small>Ferramenta: {need.tool}</small></div>)}
+              </article>
+              <article className="idea-map-branch expand">
+                <span>03 · EXPANDE</span><h3>Como colocar em prática?</h3>
+                <p>Testar, medir resultados e ampliar o que funcionar.</p>
+                {trainingMap.actions.map(action => <div className="idea-map-node" key={action.stage}><strong>{action.title}</strong><small>{action.detail}</small></div>)}
+              </article>
+            </div>
+          </div>
+
+          <div className="training-kanban-head"><div><span className="section-kicker">QUADRO DE EXECUÇÃO</span><h3>Kanban das necessidades do diagnóstico</h3><p>Mova cada necessidade conforme o conteúdo for preparado e aplicado no treinamento.</p></div><Workflow size={28}/></div>
+          <div className="training-kanban">
+            {[
+              { key: 'para_fazer', title: 'Para fazer', className: 'todo' },
+              { key: 'em_andamento', title: 'Em andamento', className: 'doing' },
+              { key: 'feito', title: 'Feito', className: 'done' }
+            ].map(column => <section className={\`kanban-column \${column.className}\`} key={column.key}>
+              <header><strong>{column.title}</strong><b>{trainingTasks.filter(task => trainingMap.needs.some(need => need.key === task.need_key) && task.task_status === column.key).length}</b></header>
+              {trainingMap.needs.filter(need => (trainingTasks.find(task => task.need_key === need.key)?.task_status || 'para_fazer') === column.key).map(need => {
+                const task = trainingTasks.find(item => item.need_key === need.key);
+                return <article className="kanban-card" key={need.key}>
+                  <span className="kanban-count">{need.count} resposta(s)</span>
+                  <h4>{need.title}</h4>
+                  <p>{need.action}</p>
+                  <small><b>Ferramenta:</b> {need.tool}</small>
+                  <button className="prompt-btn" onClick={() => copyPrompt(need.prompt)}><ClipboardCopy size={14}/> Copiar prompt</button>
+                  <label>Mover para<select value={column.key} onChange={event => task && updateTaskStatus(task, event.target.value)} disabled={!task}><option value="para_fazer">Para fazer</option><option value="em_andamento">Em andamento</option><option value="feito">Feito</option></select></label>
+                </article>;
+              })}
+              {!trainingMap.needs.some(need => (trainingTasks.find(task => task.need_key === need.key)?.task_status || 'para_fazer') === column.key) && <p className="kanban-empty">Nenhuma necessidade nesta etapa.</p>}
+            </section>)}
+          </div>
+          {!trainingTasks.length && <div className="notice warning">O Kanban precisa da migração de banco ideia_training_tasks. O quadro será ativado depois de aplicar a migração no Supabase.</div>}
+          <div className="training-prompt-actions">
+            {trainingMap.actions.map(action => <article key={action.stage}><span>{action.stage}</span><strong>{action.title}</strong><p>{action.detail}</p><small>Ferramentas: {action.tool}</small><button className="prompt-btn" onClick={() => copyPrompt(action.prompt)}><ClipboardCopy size={14}/> Copiar prompt para {action.stage.toLowerCase()}</button></article>)}
+          </div>
+        </section>
         <section className="admin-maps-section">
           <div className="crm-head"><div><span className="section-kicker">ACOMPANHAMENTO I.D.E.ia</span><h2>Mapas mentais dos participantes</h2><p>Visualização administrativa dos diagnósticos e planos individuais.</p></div></div>
           {adminMaps.length === 0 ? <div className="empty-state"><LockKeyhole size={28}/><p>Nenhum mapa mental criado ainda.</p></div> : <div className="admin-map-grid">{adminMaps.map(item => <article className="admin-map-card" key={item.id}><div><strong>{item.title || "Meu Plano I.D.E.ia"}</strong><small>{item.user_id}</small><small>Atualizado em {new Date(item.updated_at).toLocaleString("pt-BR")}</small></div><button className="mini-btn secondary" onClick={() => alert(JSON.stringify({respostas:item.answers, mapa:item.mindmap}, null, 2))}>Ver diagnóstico e mapa</button></article>)}</div>}
@@ -401,6 +470,35 @@ export default function App() {
         <p className="admin-hint">Fluxo: Nova inscrição → Contato realizado → Confirmada → Convite enviado.</p>
       </section>}
     </main>}
+    {selectedRow && <div className="admin-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setSelectedRow(null); }}>
+      <section className="admin-answer-modal" role="dialog" aria-modal="true" aria-label="Respostas individuais">
+        <header><div><span className="section-kicker">RESPOSTAS INDIVIDUAIS</span><h2>{selectedRow.nome}</h2><p>{selectedRow.email} · {selectedRow.whatsapp}</p></div><button className="icon-close" onClick={() => setSelectedRow(null)} aria-label="Fechar"><X size={20}/></button></header>
+        <div className="admin-answer-grid">
+          {exportColumns.map(([label,key]) => <article key={key}><strong>{label}</strong><p>{key === 'status' ? statusLabel(selectedRow.status) : key === 'convite_enviado' ? (selectedRow.convite_enviado ? 'Sim' : 'Não') : key === 'created_at' && selectedRow.created_at ? new Date(selectedRow.created_at).toLocaleString('pt-BR') : (selectedRow[key] || '—')}</p></article>)}
+        </div>
+        <footer>
+          <button className="ghost-btn" onClick={() => exportExcel([selectedRow], \`respostas-\${String(selectedRow.nome || 'participante').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv\`)}><FileSpreadsheet size={16}/> Excel individual</button>
+          <button className="ghost-btn" onClick={() => requestPrint({ type: 'individual', rows: [selectedRow] })}><FileText size={16}/> PDF individual</button>
+          <button className="mini-btn danger" disabled={deleteBusyId === selectedRow.id} onClick={() => deleteRegistration(selectedRow)}><Trash2 size={15}/> Excluir cadastro</button>
+        </footer>
+      </section>
+    </div>}
+
+    {printReport && <div className="print-report">
+      <header className="print-report-head"><span>SALA SECRETA I.D.E.ia</span><h1>{printReport.type === 'training' ? 'Mapa mental do treinamento I.D.E.ia' : printReport.type === 'individual' ? 'Respostas da inscrição' : 'Relatório de inscrições'}</h1><p>Gerado em {new Date().toLocaleString('pt-BR')} · {printReport.rows?.length || 0} participante(s)</p></header>
+      {printReport.type === 'training' ? <div className="print-training">
+        <h2>IDENTIFICA · Necessidades observadas</h2>
+        <p>Base analisada: {printReport.map.total} inscrição(ões). {printReport.map.lowExperience} pessoa(s) informaram que ainda não usam IA ou usam raramente.</p>
+        <ul>{printReport.map.needs.map(need => <li key={need.key}><strong>{need.title} — {need.count} pessoa(s)</strong><br/>{need.examples.join(' · ')}</li>)}</ul>
+        <h2>DIRECIONA · Ações e ferramentas</h2>
+        {printReport.map.needs.map(need => <article key={need.key}><h3>{need.title}</h3><p>{need.action}</p><p><strong>Ferramentas:</strong> {need.tool}</p><p><strong>Prompt:</strong> {need.prompt}</p></article>)}
+        <h2>EXPANDE · Plano de aplicação</h2>
+        {printReport.map.actions.map(action => <article key={action.stage}><h3>{action.stage} · {action.title}</h3><p>{action.detail}</p><p><strong>Ferramentas:</strong> {action.tool}</p><p><strong>Prompt:</strong> {action.prompt}</p></article>)}
+      </div> : printReport.type === 'individual' ? <div className="print-individual">
+        {printReport.rows.map(row => <section key={row.id}><h2>{row.nome}</h2><p>{row.email} · {row.whatsapp}</p><table><tbody>{exportColumns.map(([label,key]) => <tr key={key}><th>{label}</th><td>{key === 'status' ? statusLabel(row.status) : key === 'convite_enviado' ? (row.convite_enviado ? 'Sim' : 'Não') : key === 'created_at' && row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : (row[key] || '—')}</td></tr>)}</tbody></table></section>)}
+      </div> : <div className="print-group"><table><thead><tr>{exportColumns.map(([label]) => <th key={label}>{label}</th>)}</tr></thead><tbody>{printReport.rows.map(row => <tr key={row.id}>{exportColumns.map(([label,key]) => <td key={key}>{key === 'status' ? statusLabel(row.status) : key === 'convite_enviado' ? (row.convite_enviado ? 'Sim' : 'Não') : key === 'created_at' && row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : (row[key] || '—')}</td>)}</tr>)}</tbody></table></div>}
+    </div>}
+
     <footer>© Sala Secreta I.D.E.ia <span>•</span> Identifica · Direciona · Expande</footer>
   </div>;
 }
