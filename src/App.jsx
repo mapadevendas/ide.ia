@@ -646,59 +646,69 @@ export default function App() {
         </tr>)}</tbody></table></div>}
 
         <section className="training-map-section">
-          <div className="crm-head"><div><span className="section-kicker">MAPA DE IDEIAS · A PARTIR DAS RESPOSTAS</span><h2>Mapa mental para o treinamento I.D.E.ia</h2><p>Visão do grupo com base nas {trainingMap.total} inscrições do filtro atual.</p></div></div>
+          <div className="crm-head"><div><span className="section-kicker">1 · DIAGNÓSTICO DO GRUPO</span><h2>O que os participantes precisam?</h2><p>Esta etapa organiza as respostas do questionário. Ela identifica temas e necessidades, mas não cria ações nem gera mapa mental.</p></div></div>
           <div className="training-map-stats">
-            <div><strong>{trainingMap.total}</strong><span>respostas analisadas</span></div>
-            <div><strong>{trainingMap.lowExperience}</strong><span>ainda não usam IA ou usam raramente</span></div>
-            <div><strong>{trainingMap.needs.length}</strong><span>frentes de necessidade encontradas</span></div>
+            <div><strong>{trainingMap.total}</strong><span>inscrições no filtro atual</span></div>
+            <div><strong>{trainingMap.lowExperience}</strong><span>pessoas no início da jornada com IA</span></div>
+            <div><strong>{trainingMap.needs.length}</strong><span>temas para considerar no planejamento</span></div>
           </div>
-          <div className="idea-map-canvas idea-map-radial">
-            <svg className="idea-map-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
-              <path className="branch-identify" d="M500 350 C410 350 340 350 270 350"/>
-              <path className="branch-direct" d="M500 350 C570 290 620 190 710 180"/>
-              <path className="branch-expand" d="M500 350 C570 410 620 520 710 520"/>
-            </svg>
-            <div className="idea-map-root"><Network size={20}/><span>DIAGNÓSTICO DO GRUPO</span><strong>{trainingMap.total} respostas analisadas</strong></div>
-            <div className="idea-map-branches">
-              {trainingMap.mapBranches.map(branch=>(
-                <article className={'idea-map-branch '+branch.id} key={branch.id}>
-                  <span>{branch.stage}</span><h3>{branch.title}</h3>
-                  <div className="idea-map-nodes">
-                    {branch.items.length ? branch.items.map((item,index)=><div className="idea-map-node" key={index}><strong>{item.text}</strong><b>{item.count} resposta(s)</b></div>) : <div className="idea-map-node"><strong>Aguardando respostas</strong><small>Os tópicos aparecerão quando os participantes concluírem o diagnóstico.</small></div>}
-                  </div>
-                </article>
-              ))}
+          <div className="diagnosis-topic-list">
+            {trainingMap.needs.length ? trainingMap.needs.map(need=><article key={need.key}><strong>{need.title}</strong><span>{need.count} resposta(s) relacionadas</span><p>{need.examples.join(' · ') || 'Considere aprofundar este tema na aula.'}</p></article>) : <div className="empty-state"><Lightbulb size={25}/><p>As necessidades aparecerão aqui conforme os participantes responderem ao diagnóstico.</p></div>}
+          </div>
+          <div className="class-plan-editor">
+            <div className="crm-head"><div><span className="section-kicker">2 · PLANEJAMENTO DA TUTORA</span><h2>Como será minha aula?</h2><p>Leia as necessidades do grupo e descreva o que você realmente vai ensinar, demonstrar e colocar em prática.</p></div></div>
+            <div className="class-plan-fields">
+              <label>Título da aula<input value={classPlanForm.title} onChange={event=>setClassPlanForm(current=>({...current,title:event.target.value}))} placeholder="Ex.: Aula prática de IA para produtividade"/></label>
+              <label>Resumo: como será a aula?<textarea rows={4} value={classPlanForm.summary} onChange={event=>setClassPlanForm(current=>({...current,summary:event.target.value}))} placeholder="Descreva a sequência da aula, o que será explicado, demonstrado e praticado."/></label>
+              <label>Qual será o resultado prático para o participante?<textarea rows={2} value={classPlanForm.objective} onChange={event=>setClassPlanForm(current=>({...current,objective:event.target.value}))} placeholder="Ao final da aula, o participante será capaz de..."/></label>
+              <div className="class-plan-stage-grid">
+                <label className="stage-i">IDENTIFICA · O que você vai fazer na aula?<textarea rows={5} value={classPlanForm.identify_actions} onChange={event=>setClassPlanForm(current=>({...current,identify_actions:event.target.value}))} placeholder={'Uma ação por linha. Ex.:\\nMapear uma tarefa repetitiva\\nIdentificar o gargalo do processo\\nDefinir o problema prioritário'}/></label>
+                <label className="stage-d">DIRECIONA · O que você vai ensinar ou construir?<textarea rows={5} value={classPlanForm.direct_actions} onChange={event=>setClassPlanForm(current=>({...current,direct_actions:event.target.value}))} placeholder={'Uma ação por linha. Ex.:\\nCriar um prompt de trabalho\\nConfigurar um assistente no ChatGPT\\nPrototipar um fluxo no Lovable'}/></label>
+                <label className="stage-e">EXPANDE · Como será a aplicação?<textarea rows={5} value={classPlanForm.expand_actions} onChange={event=>setClassPlanForm(current=>({...current,expand_actions:event.target.value}))} placeholder={'Uma ação por linha. Ex.:\\nAplicar a solução durante sete dias\\nMedir tempo economizado\\nAjustar e documentar o processo'}/></label>
+              </div>
+              <div className="class-plan-support-grid">
+                <label>Ferramentas que serão utilizadas<textarea rows={3} value={classPlanForm.tools} onChange={event=>setClassPlanForm(current=>({...current,tools:event.target.value}))} placeholder={'Uma ferramenta por linha.\\nChatGPT\\nClaude\\nLovable'}/></label>
+                <label>Entregáveis da aula<textarea rows={3} value={classPlanForm.deliverables} onChange={event=>setClassPlanForm(current=>({...current,deliverables:event.target.value}))} placeholder={'Uma entrega por linha.\\nPrompt pronto\\nFluxo de trabalho\\nPlano de aplicação'}/></label>
+              </div>
             </div>
-            <p className="idea-map-caption">Mapa coletivo gerado pelas respostas individuais: necessidades, caminhos de solução e resultados desejados.</p>
+            <div className="class-plan-controls">
+              <button className="ghost-btn" disabled={classPlanBusy} onClick={saveClassSummary}><FileText size={16}/>{classPlanBusy?'Salvando...':'Salvar resumo da aula'}</button>
+              <button className="primary-btn" disabled={classPlanBusy} onClick={generateTutorMindmap}><Network size={16}/>{classPlanBusy?'Gerando...':'Gerar mapa mental a partir das ações'}</button>
+            </div>
+            {classPlan && <p className="class-plan-status">{classPlan.mindmap?.length ? 'Mapa gerado a partir do seu planejamento.' : 'Resumo salvo. O mapa mental ainda não foi gerado.'} {classPlan.is_published ? 'Mapa disponibilizado aos participantes.' : 'Ainda não publicado para os participantes.'}</p>}
           </div>
-          <div className="training-kanban-head"><div><span className="section-kicker">QUADRO DE EXECUÇÃO</span><h3>Kanban das necessidades do diagnóstico</h3><p>Mova cada necessidade conforme o conteúdo for preparado e aplicado no treinamento.</p></div><Workflow size={28}/></div>
+          <div className="class-map-output">
+            <div className="crm-head"><div><span className="section-kicker">3 · MAPA MENTAL DA AULA</span><h2>Mapa de ações I.D.E.ia</h2><p>Ele só aparece depois que você definir as ações concretas nas três etapas.</p></div>
+              {classPlan?.mindmap?.length>0 && <div className="class-map-actions"><button className="ghost-btn" onClick={()=>requestPrint({type:'training',rows:filtered,map:classPlan})}><Printer size={15}/> PDF</button><button className="primary-btn" disabled={classPlanBusy||classPlan.is_published} onClick={publishTutorMindmap}><Sparkles size={15}/>{classPlan.is_published?'Disponibilizado':'Disponibilizar aos participantes'}</button></div>}
+            </div>
+            {classPlan?.mindmap?.length ? <>
+              <div className="idea-map-canvas idea-map-radial">
+                <svg className="idea-map-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true"><path className="branch-identify" d="M500 350 C410 350 340 350 270 350"/><path className="branch-direct" d="M500 350 C570 290 620 190 710 180"/><path className="branch-expand" d="M500 350 C570 410 620 520 710 520"/></svg>
+                <div className="idea-map-root"><Network size={20}/><span>{classPlan.title || 'AULA I.D.E.ia'}</span><strong>{classPlan.objective}</strong></div>
+                <div className="idea-map-branches">{classPlan.mindmap.map(node=><article className={'idea-map-branch '+node.id} key={node.id}><span>{node.title}</span><h3>{node.subtitle || node.title}</h3><div className="idea-map-nodes">{node.items.map((item,index)=><div className="idea-map-node" key={index}><strong>{item}</strong></div>)}</div></article>)}</div>
+                <p className="idea-map-caption">Gerado a partir do resumo e das ações definidos pela tutora, não das respostas do questionário.</p>
+              </div>
+              <div className="class-plan-deliverables"><strong>Ferramentas</strong><p>{(classPlan.tools||[]).join(' · ') || 'Não informadas'}</p><strong>Entregáveis</strong><p>{(classPlan.deliverables||[]).join(' · ') || 'Não informados'}</p></div>
+            </> : <div className="class-map-empty"><Network size={34}/><strong>O mapa mental ainda não foi gerado.</strong><p>Primeiro responda como será sua aula e liste as ações de Identifica, Direciona e Expande. Depois clique em “Gerar mapa mental”.</p></div>}
+          </div>
+          <div className="training-kanban-head"><div><span className="section-kicker">4 · EXECUÇÃO DA TUTORA</span><h3>Kanban de preparação da aula</h3><p>O quadro organiza somente ações que você definiu no planejamento. Perguntas e respostas do diagnóstico não viram cartões automaticamente.</p></div><Workflow size={28}/></div>
           <div className="training-kanban">
-            {[
-              { key: 'para_fazer', title: 'Para fazer', className: 'todo' },
-              { key: 'em_andamento', title: 'Em andamento', className: 'doing' },
-              { key: 'feito', title: 'Feito', className: 'done' }
-            ].map(column => <section className={`kanban-column ${column.className}`} key={column.key}
-              onDragOver={event=>event.preventDefault()}
-              onDrop={event=>{event.preventDefault();const task=trainingTasks.find(item=>item.id===draggingTaskId);if(task)updateTaskStatus(task,column.key);setDraggingTaskId(null);}}>
-              <header><strong>{column.title}</strong><b>{trainingTasks.filter(task => trainingMap.needs.some(need => need.key === task.need_key) && task.task_status === column.key).length}</b></header>
-              {trainingMap.needs.filter(need => (trainingTasks.find(task => task.need_key === need.key)?.task_status || 'para_fazer') === column.key).map(need => {
-                const task = trainingTasks.find(item => item.need_key === need.key);
-                return <article className={`kanban-card ${draggingTaskId===task?.id?'is-dragging':''}`} key={need.key} draggable={Boolean(task)} onDragStart={()=>setDraggingTaskId(task?.id||null)} onDragEnd={()=>setDraggingTaskId(null)}>
-                  <span className="kanban-count">{need.count} resposta(s)</span>
-                  <h4>{need.title}</h4>
-                  <p>{need.action}</p>
-                  <small><b>Ferramenta:</b> {need.tool}</small>
-                  <button className="prompt-btn" onClick={() => copyPrompt(need.prompt)}><ClipboardCopy size={14}/> Copiar prompt</button>
-                  <div className="kanban-tool-links"><a href="https://chatgpt.com/" target="_blank" rel="noreferrer">ChatGPT</a><a href="https://claude.ai/new" target="_blank" rel="noreferrer">Claude</a><a href="https://lovable.dev/" target="_blank" rel="noreferrer">Lovable</a></div>
-                  <label>Mover para<select value={column.key} onChange={event => task && updateTaskStatus(task, event.target.value)} disabled={!task}><option value="para_fazer">Para fazer</option><option value="em_andamento">Em andamento</option><option value="feito">Feito</option></select></label>
-                </article>;
-              })}
-              {!trainingMap.needs.some(need => (trainingTasks.find(task => task.need_key === need.key)?.task_status || 'para_fazer') === column.key) && <p className="kanban-empty">Nenhuma necessidade nesta etapa.</p>}
-            </section>)}
-          </div>
-          {!trainingTasks.length && <div className="notice warning">O Kanban precisa da migração de banco ideia_training_tasks. O quadro será ativado depois de aplicar a migração no Supabase.</div>}
-          <div className="training-prompt-actions">
-            {trainingMap.actions.map(action => <article key={action.stage}><span>{action.stage}</span><strong>{action.title}</strong><p>{action.detail}</p><small>Ferramentas: {action.tool}</small><button className="prompt-btn" onClick={() => copyPrompt(action.prompt)}><ClipboardCopy size={14}/> Copiar prompt para {action.stage.toLowerCase()}</button><div className="kanban-tool-links"><a href="https://chatgpt.com/" target="_blank" rel="noreferrer">ChatGPT</a><a href="https://claude.ai/new" target="_blank" rel="noreferrer">Claude</a><a href="https://lovable.dev/" target="_blank" rel="noreferrer">Lovable</a></div></article>)}
+            {[{key:'para_fazer',title:'Para fazer',className:'todo'},{key:'em_andamento',title:'Em andamento',className:'doing'},{key:'feito',title:'Feito',className:'done'}].map(column=>{
+              const columnItems=lessonActions.filter(item=>(trainingTasks.find(task=>task.need_key===item.need_key)?.task_status||'para_fazer')===column.key);
+              return <section className={'kanban-column '+column.className} key={column.key} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const task=trainingTasks.find(item=>item.id===draggingTaskId);if(task)updateTaskStatus(task,column.key);setDraggingTaskId(null);}}>
+                <header><strong>{column.title}</strong><b>{columnItems.length}</b></header>
+                {columnItems.map(item=>{
+                  const task=trainingTasks.find(row=>row.need_key===item.need_key);
+                  return <article className={'kanban-card '+(draggingTaskId===task?.id?'is-dragging':'')} key={item.need_key} draggable={Boolean(task)} onDragStart={()=>setDraggingTaskId(task?.id||null)} onDragEnd={()=>setDraggingTaskId(null)}>
+                    <span className="kanban-count">{item.stage}</span><h4>{item.action}</h4><small><b>Ferramentas:</b> {lessonTools.join(', ') || 'Definir'}</small>
+                    {task?.prompt && <button className="prompt-btn" onClick={()=>copyPrompt(task.prompt)}><ClipboardCopy size={14}/> Copiar prompt de execução</button>}
+                    <div className="kanban-tool-links"><a href="https://chatgpt.com/" target="_blank" rel="noreferrer">ChatGPT</a><a href="https://claude.ai/new" target="_blank" rel="noreferrer">Claude</a><a href="https://lovable.dev/" target="_blank" rel="noreferrer">Lovable</a></div>
+                    <label>Mover para<select value={task?.task_status||'para_fazer'} onChange={event=>task&&updateTaskStatus(task,event.target.value)} disabled={!task}><option value="para_fazer">Para fazer</option><option value="em_andamento">Em andamento</option><option value="feito">Feito</option></select></label>
+                  </article>;
+                })}
+                {!columnItems.length&&<p className="kanban-empty">{classPlan?.mindmap?.length?'Nenhuma ação nesta etapa.':'O Kanban será preenchido quando você gerar o mapa mental da aula.'}</p>}
+              </section>;
+            })}
           </div>
         </section>
         <section className="admin-maps-section">
@@ -763,13 +773,9 @@ export default function App() {
     {printReport && <div className="print-report">
       <header className="print-report-head"><span>SALA SECRETA I.D.E.ia</span><h1>{printReport.type === 'training' ? 'Mapa mental do treinamento I.D.E.ia' : printReport.type === 'diagnosis' ? 'Diagnóstico individual I.D.E.ia' : printReport.type === 'individual' ? 'Respostas da inscrição' : 'Relatório de inscrições'}</h1><p>Gerado em {new Date().toLocaleString('pt-BR')} · {printReport.rows?.length || 0} participante(s)</p></header>
       {printReport.type === 'training' ? <div className="print-training">
-        <h2>IDENTIFICA · Necessidades observadas</h2>
-        <p>Base analisada: {printReport.map.total} inscrição(ões). {printReport.map.lowExperience} pessoa(s) informaram que ainda não usam IA ou usam raramente.</p>
-        <ul>{printReport.map.needs.map(need => <li key={need.key}><strong>{need.title} — {need.count} pessoa(s)</strong><br/>{need.examples.join(' · ')}</li>)}</ul>
-        <h2>DIRECIONA · Ações e ferramentas</h2>
-        {printReport.map.needs.map(need => <article key={need.key}><h3>{need.title}</h3><p>{need.action}</p><p><strong>Ferramentas:</strong> {need.tool}</p><p><strong>Prompt:</strong> {need.prompt}</p></article>)}
-        <h2>EXPANDE · Plano de aplicação</h2>
-        {printReport.map.actions.map(action => <article key={action.stage}><h3>{action.stage} · {action.title}</h3><p>{action.detail}</p><p><strong>Ferramentas:</strong> {action.tool}</p><p><strong>Prompt:</strong> {action.prompt}</p></article>)}
+        <h2>{printReport.map.title || 'Aula I.D.E.ia'}</h2><p><strong>Resumo da aula:</strong> {printReport.map.summary}</p><p><strong>Objetivo prático:</strong> {printReport.map.objective}</p>
+        {(printReport.map.mindmap||[]).map(node=><article key={node.id}><h3>{node.title} · {node.subtitle}</h3><ul>{(node.items||[]).map((item,index)=><li key={index}>{item}</li>)}</ul></article>)}
+        <h2>Ferramentas</h2><p>{(printReport.map.tools||[]).join(' · ')}</p><h2>Entregáveis</h2><p>{(printReport.map.deliverables||[]).join(' · ')}</p>
       </div> : printReport.type === 'diagnosis' ? <div className="print-individual">
         <section><h2>{printReport.map.participant_name || 'Participante da Sala Secreta'}</h2><p>{printReport.map.participant_email || ''}</p>
           <h3>Respostas do diagnóstico</h3>
