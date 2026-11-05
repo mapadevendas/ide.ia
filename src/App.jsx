@@ -242,7 +242,7 @@ export default function App() {
 
   async function deleteRegistration(row) {
     if (!row?.id || !supabase) return;
-    const confirmed = window.confirm(\`Excluir definitivamente o cadastro de \${row.nome || 'este participante'} (\${row.email || 'sem e-mail'})? Esta ação não pode ser desfeita.\`);
+    const confirmed = window.confirm(`Excluir definitivamente o cadastro de ${row.nome || 'este participante'} (${row.email || 'sem e-mail'})? Esta ação não pode ser desfeita.`);
     if (!confirmed) return;
     setDeleteBusyId(row.id);
     showNotice('');
@@ -250,7 +250,7 @@ export default function App() {
     setDeleteBusyId(null);
     if (error) {
       console.error('Falha ao excluir inscrição:', error);
-      showNotice(\`Não foi possível excluir o cadastro: \${error.message}. Verifique a política DELETE administrativa no Supabase.\`);
+      showNotice(`Não foi possível excluir o cadastro: ${error.message}. Verifique a política DELETE administrativa no Supabase.`);
       return;
     }
     if (!data) {
@@ -272,11 +272,11 @@ export default function App() {
         return row[key] ?? '';
       }))
     ];
-    const csv = csvRows.map(row => row.map(value => \`"\${String(value ?? '').replaceAll('"', '""')}"\`).join(';')).join('\\r\\n');
-    const url = URL.createObjectURL(new Blob(['\\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
+    const csv = csvRows.map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(';')).join('\r\n');
+    const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = filename.endsWith('.csv') ? filename : \`\${filename}.csv\`;
+    anchor.download = filename.endsWith('.csv') ? filename : `${filename}.csv`;
     anchor.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
@@ -287,7 +287,7 @@ export default function App() {
       .eq('id', task.id).select('*').single();
     if (error) {
       console.error('Falha ao mover cartão do Kanban:', error);
-      showNotice(\`Não foi possível atualizar o Kanban: \${error.message}. Verifique se a migração do quadro foi executada no Supabase.\`);
+      showNotice(`Não foi possível atualizar o Kanban: ${error.message}. Verifique se a migração do quadro foi executada no Supabase.`);
       return;
     }
     setTrainingTasks(current => current.map(item => item.id === task.id ? data : item));
@@ -391,13 +391,13 @@ export default function App() {
         {copyNotice && <div className="notice success">{copyNotice}</div>}
         {adminLoading ? <p>Carregando inscrições...</p> : filtered.length === 0 ? <div className="empty-state"><Users size={30} /><p>Nenhuma inscrição encontrada com esses filtros.</p></div> : <div className="table-scroll"><table><thead><tr><th>Participante</th><th>Contato</th><th>Perfil e IA</th><th>Objetivo</th><th>Status</th><th>Ações</th></tr></thead><tbody>{filtered.map(row => <tr key={row.id}>
           <td><strong>{row.nome}</strong><small>{new Date(row.created_at).toLocaleString('pt-BR')}</small></td>
-          <td><a href={\`https://wa.me/55\${String(row.whatsapp || '').replace(/\\D/g, '').replace(/^55/, '')}\`} target="_blank" rel="noreferrer">{row.whatsapp}</a><small>{row.email}</small></td>
+          <td><a href={`https://wa.me/55${String(row.whatsapp || '').replace(/\D/g, '').replace(/^55/, '')}`} target="_blank" rel="noreferrer">{row.whatsapp}</a><small>{row.email}</small></td>
           <td><span>{row.perfil || '—'}</span><small>{row.experiencia_ia || '—'}</small><small>{row.ferramentas_utilizadas || ''}</small></td>
           <td><small>{row.objetivo || '—'}</small><small>Site: {row.site || '—'}</small><small>Investimento: {row.investimento_mensal || '—'}</small></td>
           <td><select className="status-select" value={row.status || 'nova'} onChange={event => changeStatus(row.id, event.target.value)}>{statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></td>
           <td className="admin-row-actions">
             <button className="mini-btn secondary" onClick={() => setSelectedRow(row)}>Ver respostas</button>
-            <button className="mini-btn secondary" onClick={() => exportExcel([row], \`respostas-\${String(row.nome || 'participante').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv\`)}><FileSpreadsheet size={13}/> Excel</button>
+            <button className="mini-btn secondary" onClick={() => exportExcel([row], `respostas-${String(row.nome || 'participante').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`)}><FileSpreadsheet size={13}/> Excel</button>
             <button className="mini-btn secondary" onClick={() => requestPrint({ type: 'individual', rows: [row] })}><FileText size={13}/> PDF</button>
             <button className="mini-btn danger" disabled={deleteBusyId === row.id} onClick={() => deleteRegistration(row)}><Trash2 size={13}/> {deleteBusyId === row.id ? 'Excluindo...' : 'Excluir'}</button>
           </td>
@@ -442,7 +442,7 @@ export default function App() {
               { key: 'para_fazer', title: 'Para fazer', className: 'todo' },
               { key: 'em_andamento', title: 'Em andamento', className: 'doing' },
               { key: 'feito', title: 'Feito', className: 'done' }
-            ].map(column => <section className={\`kanban-column \${column.className}\`} key={column.key}>
+            ].map(column => <section className={`kanban-column ${column.className}`} key={column.key}>
               <header><strong>{column.title}</strong><b>{trainingTasks.filter(task => trainingMap.needs.some(need => need.key === task.need_key) && task.task_status === column.key).length}</b></header>
               {trainingMap.needs.filter(need => (trainingTasks.find(task => task.need_key === need.key)?.task_status || 'para_fazer') === column.key).map(need => {
                 const task = trainingTasks.find(item => item.need_key === need.key);
@@ -477,7 +477,7 @@ export default function App() {
           {exportColumns.map(([label,key]) => <article key={key}><strong>{label}</strong><p>{key === 'status' ? statusLabel(selectedRow.status) : key === 'convite_enviado' ? (selectedRow.convite_enviado ? 'Sim' : 'Não') : key === 'created_at' && selectedRow.created_at ? new Date(selectedRow.created_at).toLocaleString('pt-BR') : (selectedRow[key] || '—')}</p></article>)}
         </div>
         <footer>
-          <button className="ghost-btn" onClick={() => exportExcel([selectedRow], \`respostas-\${String(selectedRow.nome || 'participante').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv\`)}><FileSpreadsheet size={16}/> Excel individual</button>
+          <button className="ghost-btn" onClick={() => exportExcel([selectedRow], `respostas-${String(selectedRow.nome || 'participante').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`)}><FileSpreadsheet size={16}/> Excel individual</button>
           <button className="ghost-btn" onClick={() => requestPrint({ type: 'individual', rows: [selectedRow] })}><FileText size={16}/> PDF individual</button>
           <button className="mini-btn danger" disabled={deleteBusyId === selectedRow.id} onClick={() => deleteRegistration(selectedRow)}><Trash2 size={15}/> Excluir cadastro</button>
         </footer>
