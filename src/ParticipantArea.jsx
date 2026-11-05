@@ -172,7 +172,7 @@ export default function ParticipantArea() {
       setNotice('Tarefa adicionada ao seu Kanban.');
     } catch (error) {
       console.error('Falha ao criar tarefa:', error);
-      setNotice(\`Não foi possível adicionar a tarefa: \${error.message || 'erro inesperado'}\`);
+      setNotice(`Não foi possível adicionar a tarefa: ${error.message || 'erro inesperado'}`);
     } finally {
       setTaskBusy(false);
     }
@@ -213,7 +213,7 @@ export default function ParticipantArea() {
       .single();
     if (error) {
       setTasks(previous);
-      setNotice(\`Não foi possível mover a tarefa: \${error.message}\`);
+      setNotice(`Não foi possível mover a tarefa: ${error.message}`);
       return;
     }
     setTasks(current => current.map(item => item.id === task.id ? data : item));
@@ -221,14 +221,14 @@ export default function ParticipantArea() {
 
   async function removeTask(task) {
     if (!db || !session) return;
-    if (!window.confirm(\`Excluir a tarefa "\${task.title}"?\`)) return;
+    if (!window.confirm(`Excluir a tarefa "${task.title}"?`)) return;
     const previous = tasks;
     setTasks(current => current.filter(item => item.id !== task.id));
     const { error } = await db.from('ideia_participant_tasks').delete()
       .eq('id', task.id).eq('user_id', session.user.id);
     if (error) {
       setTasks(previous);
-      setNotice(\`Não foi possível excluir a tarefa: \${error.message}\`);
+      setNotice(`Não foi possível excluir a tarefa: ${error.message}`);
       return;
     }
     setNotice('Tarefa excluída.');
