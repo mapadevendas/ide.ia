@@ -470,3 +470,53 @@ td a { white-space: nowrap; }
   .idea-map-radial .idea-map-branch.d{position:absolute;top:3%;right:2%;width:33%}
   .idea-map-radial .idea-map-branch.e{position:absolute;right:2%;bottom:3%;width:33%}
 }
+
+
+/* Workflow de conteúdo: diagnóstico, resumo da aula e mapa de ações */
+.diagnosis-topic-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0 28px}
+.diagnosis-topic-list article{padding:14px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.025)}
+.diagnosis-topic-list article strong{display:block;color:#f6edf9;font-size:13px}
+.diagnosis-topic-list article span{display:inline-block;margin-top:6px;color:#f3c879;font-size:10px;font-weight:800}
+.diagnosis-topic-list article p{margin:7px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+.class-plan-editor{margin:26px 0;padding:22px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,rgba(116,62,143,.12),rgba(30,24,36,.9))}
+.class-plan-fields{display:grid;gap:13px}
+.class-plan-fields>label,.class-plan-stage-grid>label,.class-plan-support-grid>label{display:grid;gap:7px;color:#f0e6f5;font-size:12px;font-weight:800}
+.class-plan-fields input,.class-plan-fields textarea{width:100%;padding:11px 13px;border:1px solid #55415f;border-radius:9px;background:#18131e;color:#f8f3fa;font:inherit;font-size:12px;line-height:1.55;resize:vertical}
+.class-plan-fields input:focus,.class-plan-fields textarea:focus{outline:none;border-color:#b27ad0;box-shadow:0 0 0 3px rgba(178,122,208,.12)}
+.class-plan-fields textarea::placeholder,.class-plan-fields input::placeholder{color:#8e8095}
+.class-plan-stage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:6px}
+.class-plan-stage-grid>label{padding:12px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.025)}
+.class-plan-stage-grid .stage-i{border-top:3px solid #ad78d1}
+.class-plan-stage-grid .stage-d{border-top:3px solid #d7aa56}
+.class-plan-stage-grid .stage-e{border-top:3px solid #67b98a}
+.class-plan-support-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.class-plan-controls,.class-map-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:17px}
+.class-plan-controls .primary-btn,.class-map-actions .primary-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:0;border-radius:9px;background:linear-gradient(100deg,#7428a1,#a743be);color:#fff;font-size:12px;font-weight:800;cursor:pointer}
+.class-plan-controls .primary-btn:disabled,.class-map-actions .primary-btn:disabled{opacity:.55;cursor:not-allowed}
+.class-plan-status{margin:12px 0 0;color:var(--muted);font-size:11px}
+.class-map-output{margin:26px 0}
+.class-map-empty{display:grid;justify-items:center;gap:9px;padding:44px 22px;border:1px dashed #735a7c;border-radius:16px;background:rgba(255,255,255,.02);color:#c7b6ce;text-align:center}
+.class-map-empty svg{color:#b68bd0}
+.class-map-empty strong{color:#f3e9f8;font-size:15px}
+.class-map-empty p{max-width:520px;margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+.class-plan-deliverables{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02)}
+.class-plan-deliverables strong{color:#eac879;font-size:11px}
+.class-plan-deliverables p{margin:0;color:var(--muted);font-size:11px;line-height:1.5}
+.class-map-actions{margin-top:0}
+@media(max-width:900px){
+  .diagnosis-topic-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .class-plan-stage-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .diagnosis-topic-list,.class-plan-support-grid{grid-template-columns:1fr}
+  .class-plan-editor{padding:14px}
+  .class-plan-controls{display:grid;grid-template-columns:1fr}
+  .class-plan-controls button{width:100%}
+  .class-map-actions{display:grid;grid-template-columns:1fr}
+  .class-plan-deliverables{grid-template-columns:1fr}
+}
+@media print{
+  .class-plan-editor,.class-plan-controls,.class-map-actions,.training-kanban{display:none!important}
+  .class-map-empty{display:none!important}
+  .class-map-output .idea-map-canvas{break-inside:avoid}
+}
