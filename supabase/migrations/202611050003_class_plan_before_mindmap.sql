@@ -16,6 +16,7 @@ create table if not exists public.ideia_class_plans (
 );
 
 alter table public.ideia_class_plans enable row level security;
+revoke all on table public.ideia_class_plans from anon, authenticated;
 grant select, insert, update on public.ideia_class_plans to authenticated;
 
 drop policy if exists ideia_class_plans_admin_select on public.ideia_class_plans;
