@@ -436,28 +436,53 @@ export default function ParticipantArea() {
                 <button className="secondary" onClick={printMap} title="Imprimir ou salvar como PDF" aria-label="Imprimir ou salvar como PDF"><Printer size={16} /></button>
               </div>
             </div>
-            <div className="pa-map">
-              <div className="pa-center">Meu Plano<br />I.D.E.ia</div>
-              <div className="pa-branches">
+            <div className="pa-map pa-mindmap">
+              <div className="pa-mindmap-root">
+                <span>MAPA DE IDEIAS</span>
+                <strong>Meu Plano I.D.E.ia</strong>
+                <small>Seu diagnóstico transformado em caminhos de ação</small>
+              </div>
+
+              <svg className="pa-mindmap-lines" viewBox="0 0 1000 570" preserveAspectRatio="none" aria-hidden="true">
+                <path className="line-root-i" d="M500 105 C500 145 170 118 170 190" />
+                <path className="line-root-d" d="M500 105 L500 190" />
+                <path className="line-root-e" d="M500 105 C500 145 830 118 830 190" />
+                <path className="line-i-child" d="M170 230 C170 270 170 285 170 320 M170 375 L170 405 M170 460 L170 490" />
+                <path className="line-d-child" d="M500 230 C500 270 500 285 500 320 M500 375 L500 405 M500 460 L500 490" />
+                <path className="line-e-child" d="M830 230 C830 270 830 285 830 320 M830 375 L830 405 M830 460 L830 490" />
+              </svg>
+
+              <div className="pa-mindmap-groups">
                 {nodes.map(node => (
-                  <article key={node.id} className={'pa-branch ' + node.id}>
-                    <h3>{node.title}</h3>
-                    <ul>
+                  <section key={node.id} className={'pa-mindmap-group ' + node.id}>
+                    <div className="pa-mindmap-branch">
+                      <span>{node.id === 'i' ? '01' : node.id === 'd' ? '02' : '03'}</span>
+                      <strong>{node.title}</strong>
+                    </div>
+                    <div className="pa-mindmap-children">
                       {node.items.map((item, index) => (
-                        <li key={index}>
+                        <div className="pa-mindmap-child" key={index}>
+                          <span className="pa-child-dot" />
                           {edit ? (
                             <div className="pa-node-edit">
-                              <input value={item} onChange={event => changeNode(node.id, index, event.target.value)} />
-                              <button className="pa-delete" onClick={() => deleteNode(node.id, index)} aria-label="Excluir tópico"><Trash2 size={14} /></button>
+                              <input
+                                aria-label={`Editar ideia ${index + 1} em ${node.title}`}
+                                value={item}
+                                onChange={event => changeNode(node.id, index, event.target.value)}
+                              />
+                              <button className="pa-delete" onClick={() => deleteNode(node.id, index)} aria-label="Excluir ideia">
+                                <Trash2 size={14} />
+                              </button>
                             </div>
-                          ) : item}
-                        </li>
+                          ) : <span className="pa-mindmap-child-text">{item}</span>}
+                        </div>
                       ))}
-                    </ul>
-                    {edit && <button className="pa-add" onClick={() => addNode(node.id)}><Plus size={14} /> Adicionar tópico</button>}
-                  </article>
+                    </div>
+                    {edit && <button className="pa-add" onClick={() => addNode(node.id)}><Plus size={14} /> Adicionar ideia</button>}
+                  </section>
                 ))}
               </div>
+              <p className="pa-mindmap-caption">Cada ramificação organiza uma parte do seu plano. As ideias vêm das respostas do diagnóstico e podem ser editadas por você.</p>
             </div>
             {edit && <div className="pa-actions pa-save-footer"><span>As alterações ainda não foram salvas.</span><button onClick={toggleMapEdit} disabled={busy}>{busy ? 'Salvando...' : 'Salvar alterações'}</button></div>}
           </section>
