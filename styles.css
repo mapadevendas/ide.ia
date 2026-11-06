@@ -1,0 +1,207 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: "Fraunces", Georgia, serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ouro: var(--ouro);
+  --color-tinta: var(--tinta);
+  --color-papel: var(--papel);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.6rem;
+  color-scheme: dark;
+
+  /* Cardume — Roxo profundo #170A2B, Laranja #FF6B1A, Lilás #B48CFF, Texto #F4EFFB */
+  --background: #0e0519;
+  --foreground: #f4effb;
+  --card: #170a2a;
+  --card-foreground: #f4effb;
+  --popover: #1c0d33;
+  --popover-foreground: #f4effb;
+  --primary: #ff6b1a;
+  --primary-foreground: #1a0a02;
+  --secondary: #201038;
+  --secondary-foreground: #f4effb;
+  --muted: #190b2d;
+  --muted-foreground: #b5a6cf;
+  --accent: #2b1450;
+  --accent-foreground: #f4effb;
+  --destructive: #f05252;
+  --destructive-foreground: #1a0a02;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --border: #2e1a4f;
+  --input: #3d2566;
+  --ring: #ff6b1a;
+
+  --ouro: #b48cff;
+  --tinta: #0f0620;
+  --papel: #f4effb;
+
+  --chart-1: #ff6b1a;
+  --chart-2: #b48cff;
+  --chart-3: #f4effb;
+  --chart-4: #e879f9;
+  --chart-5: #3b2563;
+
+  --sidebar: #12071f;
+  --sidebar-foreground: #f4effb;
+  --sidebar-primary: #ff6b1a;
+  --sidebar-primary-foreground: #1a0a02;
+  --sidebar-accent: #241040;
+  --sidebar-accent-foreground: #f4effb;
+  --sidebar-border: #2e1a4f;
+  --sidebar-ring: #ff6b1a;
+}
+
+/* no papel (PDF/impressão) a jornada sai clara, para não gastar tinta */
+@media print {
+  :root {
+    color-scheme: light;
+    --background: #ffffff;
+    --foreground: #121017;
+    --card: #ffffff;
+    --card-foreground: #121017;
+    --muted: #f4f2f7;
+    --muted-foreground: #5d5766;
+    --accent: #fff3e3;
+    --border: #e4e0ea;
+    --primary: #d97706;
+    --primary-foreground: #ffffff;
+    --ouro: #7c5cd6;
+    --tinta: #121017;
+    --papel: #ffffff;
+    --chart-3: #121017;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--background);
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    background-image: linear-gradient(180deg, #0e0519 0%, #150828 45%, #0b0414 100%);
+    background-attachment: fixed;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, h4 {
+    @apply font-heading;
+    line-height: 1.12;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  img, video {
+    max-width: 100%;
+  }
+  img, video {
+    height: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer kit {
+  [data-slot=button] {
+    font-weight: 600;
+    letter-spacing: 0.005em;
+  }
+  [data-slot=button][data-variant=default] {
+    background-image: linear-gradient(135deg, #ff8a3d 0%, #ff6b1a 50%, #e8501a 100%);
+    box-shadow: 0 6px 20px -8px rgb(255 107 26 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.25);
+  }
+  [data-slot=card] {
+    background-image: linear-gradient(160deg, #1f0d3a 0%, #140825 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03), 0 12px 32px -18px rgb(0 0 0 / 0.6);
+  }
+  [data-slot=badge] {
+    letter-spacing: 0.04em;
+  }
+}
+
+@utility container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+  padding-inline: 1.25rem;
+  @media (width >= 48rem) {
+    padding-inline: 2rem;
+  }
+}
+
+@utility papel-textura {
+  background-image:
+    radial-gradient(52rem 28rem at 8% -10%, rgb(139 92 246 / 0.32), transparent 70%),
+    radial-gradient(44rem 24rem at 95% 10%, rgb(255 107 26 / 0.12), transparent 70%),
+    radial-gradient(rgb(244 239 251 / 0.05) 1px, transparent 1px);
+  background-size: auto, auto, 18px 18px;
+}
+
+@media print {
+  body, [data-slot=card] { background-image: none; }
+}
+
+/* plataforma: nada rola para o lado no celular */
+html,
+body {
+  overflow-x: clip;
+}
